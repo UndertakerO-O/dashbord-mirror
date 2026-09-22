@@ -1,0 +1,29 @@
+services:
+  database:
+    image: postgres:16-alpine
+    container_name: dashboard-database
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: dashboard
+      POSTGRES_PASSWORD: dashboard
+      POSTGRES_DB: dashboard
+    ports:
+      - "5432:5432"
+    volumes:
+      - dashboard-postgres-data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+    container_name: dashboard-backend
+    restart: unless-stopped
+    environment:
+      PORT: 8000
+      DATABASE_URL: postgresql://dashboard:dashboard@database:5432/dashboard?schema=public
+    ports:
+      - "8080:8000"
+    depends_on:
+      - database
+
+volumes:
+  dashboard-postgres-data:
