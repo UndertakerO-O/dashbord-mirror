@@ -19,11 +19,24 @@ services:
     restart: unless-stopped
     environment:
       PORT: 8000
+      FRONTEND_ORIGIN: http://localhost:5173
       DATABASE_URL: postgresql://dashboard:dashboard@database:5432/dashboard?schema=public
     ports:
       - "8080:8000"
     depends_on:
       - database
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: dashboard-frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: http://localhost:8080
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
 
 volumes:
   dashboard-postgres-data:
