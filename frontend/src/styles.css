@@ -11,9 +11,7 @@ body {
   background: #f5f7fb;
 }
 
-a {
-  color: #3157d5;
-}
+a { color: #3157d5; }
 
 .auth-shell {
   display: grid;
@@ -23,10 +21,7 @@ a {
   background: radial-gradient(circle at 20% 10%, #e9edff, transparent 32rem), #f5f7fb;
 }
 
-.auth-card {
-  width: min(100%, 31rem);
-  border-radius: 1.25rem;
-}
+.auth-card { width: min(100%, 31rem); border-radius: 1.25rem; }
 
 .brand-mark,
 .empty-icon {
@@ -40,31 +35,34 @@ a {
   font-weight: 700;
 }
 
-.eyebrow {
+.eyebrow { color: #3157d5; font-size: .72rem; font-weight: 700; letter-spacing: .12em; }
+.form-control { min-height: 2.9rem; }
+.dashboard-shell { min-height: 100vh; }
+.empty-dashboard { border-radius: 1.25rem; }
+.empty-icon { margin-inline: auto; font-size: 1.5rem; }
+.dashboard-placeholder { min-height: 15rem; border-radius: 1.25rem; }
+
+.password-input { position: relative; }
+.password-input .form-control { padding-right: 4.5rem; }
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: .75rem;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
   color: #3157d5;
-  font-size: .72rem;
-  font-weight: 700;
-  letter-spacing: .12em;
+  font-size: .85rem;
+  font-weight: 600;
 }
+.password-toggle:focus-visible { outline: 2px solid #3157d5; outline-offset: 2px; border-radius: .25rem; }
 
-.form-control {
-  min-height: 2.9rem;
+.password-rules {
+  padding: .75rem 1rem;
+  border-radius: .65rem;
+  background: #f5f7fb;
+  font-size: .85rem;
 }
-
-.dashboard-shell {
-  min-height: 100vh;
-}
-
-.empty-dashboard {
-  border-radius: 1.25rem;
-}
-
-.empty-icon {
-  margin-inline: auto;
-  font-size: 1.5rem;
-}
-
-.dashboard-placeholder {
-  min-height: 15rem;
-  border-radius: 1.25rem;
-}
+.password-rules li { color: #6c757d; margin: .25rem 0; transition: color .2s ease; }
+.password-rules li.valid { color: #198754; font-weight: 600; }
+.rule-icon { display: inline-block; width: 1.25rem; font-weight: 700; }

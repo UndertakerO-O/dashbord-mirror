@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
 import AuthLayout from '../components/AuthLayout.vue';
 import { authApi } from '../api/auth';
@@ -7,11 +7,31 @@ import { authApi } from '../api/auth';
 const router = useRouter();
 const email = ref('');
 const password = ref('');
+const passwordConfirmation = ref('');
+const showPassword = ref(false);
+const showConfirmation = ref(false);
 const error = ref('');
-const confirmationToken = ref('');
 const loading = ref(false);
+const confirmationToken = ref('');
+
+const passwordRules = computed(() => [
+  { label: 'At least 8 characters', valid: password.value.length >= 8 },
+  { label: 'One uppercase letter', valid: /[A-Z]/.test(password.value) },
+  { label: 'One lowercase letter', valid: /[a-z]/.test(password.value) },
+  { label: 'One number', valid: /[0-9]/.test(password.value) },
+]);
+
+const passwordIsValid = computed(() => passwordRules.value.every((rule) => rule.valid));
+const passwordsMatch = computed(
+  () => passwordConfirmation.value.length > 0 && password.value === passwordConfirmation.value,
+);
+const canSubmit = computed(
+  () => email.value.length > 0 && passwordIsValid.value && passwordsMatch.value && !loading.value,
+);
 
 async function submit(): Promise<void> {
+  if (!canSubmit.value) return;
+
   loading.value = true;
   error.value = '';
   try {
@@ -28,23 +48,84 @@ async function submit(): Promise<void> {
 <template>
   <AuthLayout>
     <template #title>Create your account</template>
-    <template #subtitle>Start building your own information dashboard.</template>
+    <template #subtitle>Set up your personal information dashboard.</template>
 
     <div v-if="confirmationToken" class="alert alert-success" role="status">
-      Account created. For local development, confirm it here:
+      <strong>Account created.</strong>
+      <p class="mb-2">Confirm your account before signing in.</p>
       <RouterLink :to="{ path: '/confirm', query: { token: confirmationToken } }">
-        confirm my account
+        Confirm my account
       </RouterLink>
     </div>
 
     <form v-else @submit.prevent="submit" novalidate>
       <div v-if="error" class="alert alert-danger" role="alert">{{ error }}</div>
+
       <label class="form-label" for="signup-email">Email address</label>
-      <input id="signup-email" v-model="email" class="form-control mb-3" type="email" required autocomplete="email" />
+      <input
+        id="signup-email"
+        v-model="email"
+        class="form-control mb-3"
+        type="email"
+        required
+        autocomplete="email"
+        placeholder="you@example.com"
+      />
+
       <label class="form-label" for="signup-password">Password</label>
-      <input id="signup-password" v-model="password" class="form-control mb-3" type="password" required minlength="8" autocomplete="new-password" />
-      <p class="form-text mb-4">At least 8 characters, with uppercase, lowercase and a number.</p>
-      <button class="btn btn-primary w-100" type="submit" :disabled="loading">
+      <div class="password-input mb-2">
+        <input
+          id="signup-password"
+          v-model="password"
+          class="form-control"
+          :type="showPassword ? 'text' : 'password'"
+          required
+          autocomplete="new-password"
+          aria-describedby="password-rules"
+        />
+        <button
+          class="password-toggle"
+          type="button"
+          :aria-label="showPassword ? 'Hide password' : 'Show password'"
+          @click="showPassword = !showPassword"
+        >
+          {{ showPassword ? 'Hide' : 'Show' }}
+        </button>
+      </div>
+
+      <ul id="password-rules" class="password-rules list-unstyled mb-3" aria-live="polite">
+        <li v-for="rule in passwordRules" :key="rule.label" :class="{ valid: rule.valid }">
+          <span class="rule-icon" aria-hidden="true">{{ rule.valid ? '✓' : '○' }}</span>
+          {{ rule.label }}
+        </li>
+      </ul>
+
+      <label class="form-label" for="signup-password-confirmation">Confirm password</label>
+      <div class="password-input mb-1">
+        <input
+          id="signup-password-confirmation"
+          v-model="passwordConfirmation"
+          class="form-control"
+          :class="{ 'is-invalid': passwordConfirmation.length > 0 && !passwordsMatch }"
+          :type="showConfirmation ? 'text' : 'password'"
+          required
+          autocomplete="new-password"
+          aria-describedby="password-match"
+        />
+        <button
+          class="password-toggle"
+          type="button"
+          :aria-label="showConfirmation ? 'Hide password confirmation' : 'Show password confirmation'"
+          @click="showConfirmation = !showConfirmation"
+        >
+          {{ showConfirmation ? 'Hide' : 'Show' }}
+        </button>
+      </div>
+      <div id="password-match" class="form-text mb-4" :class="{ 'text-success': passwordsMatch }">
+        {{ passwordsMatch ? 'Passwords match.' : 'Repeat your password exactly.' }}
+      </div>
+
+      <button class="btn btn-primary w-100" type="submit" :disabled="!canSubmit">
         {{ loading ? 'Creating account…' : 'Create account' }}
       </button>
     </form>

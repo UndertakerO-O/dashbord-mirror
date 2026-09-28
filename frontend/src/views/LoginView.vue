@@ -8,6 +8,7 @@ const router = useRouter();
 const route = useRoute();
 const email = ref('');
 const password = ref('');
+const showPassword = ref(false);
 const error = ref('');
 const loading = ref(false);
 
@@ -28,15 +29,43 @@ async function submit(): Promise<void> {
 <template>
   <AuthLayout>
     <template #title>Welcome back</template>
-    <template #subtitle>Sign in to access your personal dashboard.</template>
+    <template #subtitle>Sign in to continue to your dashboard.</template>
 
     <form @submit.prevent="submit" novalidate>
       <div v-if="error" class="alert alert-danger" role="alert">{{ error }}</div>
+
       <label class="form-label" for="login-email">Email address</label>
-      <input id="login-email" v-model="email" class="form-control mb-3" type="email" required autocomplete="email" />
+      <input
+        id="login-email"
+        v-model="email"
+        class="form-control mb-3"
+        type="email"
+        required
+        autocomplete="email"
+        placeholder="you@example.com"
+      />
+
       <label class="form-label" for="login-password">Password</label>
-      <input id="login-password" v-model="password" class="form-control mb-4" type="password" required autocomplete="current-password" />
-      <button class="btn btn-primary w-100" type="submit" :disabled="loading">
+      <div class="password-input mb-4">
+        <input
+          id="login-password"
+          v-model="password"
+          class="form-control"
+          :type="showPassword ? 'text' : 'password'"
+          required
+          autocomplete="current-password"
+        />
+        <button
+          class="password-toggle"
+          type="button"
+          :aria-label="showPassword ? 'Hide password' : 'Show password'"
+          @click="showPassword = !showPassword"
+        >
+          {{ showPassword ? 'Hide' : 'Show' }}
+        </button>
+      </div>
+
+      <button class="btn btn-primary w-100" type="submit" :disabled="loading || !email || !password">
         {{ loading ? 'Signing in…' : 'Sign in' }}
       </button>
     </form>
