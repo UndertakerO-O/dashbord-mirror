@@ -58,4 +58,5 @@ Adresses disponibles :
 - [API](docs/api.md)
 - [Authentification backend](docs/authentication.md)
 - [Authentification frontend](docs/frontend-authentication.md)
+- [OAuth GitHub manuel](docs/github-oauth.md)
 - [Matrice de décision](decision-matrix.md)

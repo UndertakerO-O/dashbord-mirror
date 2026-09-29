@@ -2,6 +2,7 @@ import { Body, Controller, Get, Post, Query, Req, Res, UseGuards } from '@nestjs
 import { Request, Response } from 'express';
 import { AuthGuard, AuthenticatedRequest } from './auth.guard';
 import { AuthService } from './auth.service';
+import { GitHubOAuthService } from './github-oauth.service';
 import { LoginDto } from './dto/login.dto';
 import { SignupDto } from './dto/signup.dto';
 
@@ -25,7 +26,29 @@ function sessionToken(request: Request): string | undefined {
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly githubOAuthService: GitHubOAuthService,
+  ) {}
+
+  @Get('github')
+  @UseGuards(AuthGuard)
+  async github(@Req() request: AuthenticatedRequest, @Res() response: Response) {
+    response.redirect(await this.githubOAuthService.createAuthorizationUrl(request.userId));
+  }
+
+  @Get('github/callback')
+  async githubCallback(
+    @Query('code') code: string,
+    @Query('state') state: string,
+    @Query('error') error: string,
+    @Res() response: Response,
+  ) {
+    const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:5173';
+    if (error) return response.redirect(`${frontendUrl}/dashboard?github=cancelled`);
+    await this.githubOAuthService.completeAuthorization(code, state);
+    return response.redirect(`${frontendUrl}/dashboard?github=connected`);
+  }
 
   @Post('signup')
   signup(@Body() dto: SignupDto) {

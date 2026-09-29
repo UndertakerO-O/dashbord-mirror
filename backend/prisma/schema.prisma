@@ -17,6 +17,8 @@ model User {
   createdAt             DateTime          @default(now())
   updatedAt             DateTime          @updatedAt
   sessions              Session[]
+  oauthStates            OAuthState[]
+  oauthConnections       OAuthConnection[]
   subscriptions         Subscription[]
   dashboardWidgets      DashboardWidget[]
 }
@@ -31,6 +33,32 @@ model Session {
 
   @@index([userId])
   @@index([expiresAt])
+}
+
+model OAuthState {
+  id        String   @id @default(cuid())
+  userId    Int
+  stateHash String   @unique @db.VarChar(128)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+}
+
+model OAuthConnection {
+  id                String   @id @default(cuid())
+  userId            Int
+  provider          String   @db.VarChar(50)
+  providerAccountId String   @db.VarChar(255)
+  accessTokenCipher String   @db.Text
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@unique([userId, provider])
+  @@index([userId])
 }
 
 model Service {
