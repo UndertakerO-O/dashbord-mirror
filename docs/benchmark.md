@@ -89,7 +89,7 @@ backend/prisma/migrations/init_dashbord/migration.sql
 
 ## OAuth manuel
 
-Le sujet interdit les bibliothèques qui implémentent OAuth entièrement à la place de l'équipe. Le flux GitHub est donc développé avec les fonctionnalités natives de Node.js et NestJS :
+Le sujet interdit les bibliothèques qui implémentent OAuth entièrement à ma place. Le flux GitHub est donc développé avec les fonctionnalités natives de Node.js et NestJS :
 
 - `fetch` pour les appels HTTP ;
 - `URLSearchParams` pour construire l'URL d'autorisation ;
@@ -133,7 +133,7 @@ Les données sensibles sont traitées côté backend :
 - les tokens de confirmation et de session sont hashés en base ;
 - le token de session est placé dans un cookie `HttpOnly` ;
 - le token OAuth GitHub est chiffré en AES-256-GCM ;
-- les secrets sont fournis par l'environnement et ne doivent pas être commit ;
+- les secrets sont fournis par l'environnement;
 - les routes protégées utilisent un guard NestJS.
 
 ## Décision finale

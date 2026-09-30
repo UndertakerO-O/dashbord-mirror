@@ -3,7 +3,7 @@ import { request } from './http';
 export interface SignupResponse {
   id: number;
   email: string;
-  confirmationToken: string;
+  message: string;
 }
 
 export interface AuthUser {

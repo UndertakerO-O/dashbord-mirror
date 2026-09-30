@@ -28,7 +28,7 @@ UsersRepository + PrismaService
 | POST | `/auth/logout` | Supprime la session courante. |
 | GET | `/auth/me` | Vérifie la session courante. |
 
-En développement, `signup` retourne le token de confirmation pour permettre les tests. En production, ce token devra être envoyé par email et ne devra pas être inclus dans la réponse HTTP.
+Le backend envoie le lien de confirmation via SMTP. En développement, les emails sont interceptés par Mailpit et consultables sur `http://localhost:8025`. Le token n'est pas retourné dans la réponse HTTP.
 
 ## Session
 

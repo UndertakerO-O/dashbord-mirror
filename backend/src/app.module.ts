@@ -8,7 +8,6 @@ import { UsersModule } from './users/users.module';
 import { WidgetsModule } from './widgets/widgets.module';
 
 @Module({
-  // Les modules correspondent aux domaines fonctionnels du Dashboard Project.
   imports: [
     DatabaseModule,
     AboutModule,

@@ -4,7 +4,7 @@ Dashboard personnalisable permettant à un utilisateur authentifié de suivre pl
 
 ## Fonctionnalités actuelles
 
-- inscription et confirmation de compte ;
+- inscription et confirmation de compte par email avec Mailpit en développement ;
 - connexion avec session persistante ;
 - frontend Vue.js responsive ;
 - dashboard protégé ;
@@ -55,8 +55,10 @@ Adresses disponibles :
 - [Benchmark](docs/benchmark.md)
 - [Architecture](docs/architecture.md)
 - [Installation et Docker](docs/setup.md)
+- [Emails de développement](docs/email-development.md)
 - [API](docs/api.md)
 - [Authentification backend](docs/authentication.md)
 - [Authentification frontend](docs/frontend-authentication.md)
 - [OAuth GitHub manuel](docs/github-oauth.md)
 - [Matrice de décision](decision-matrix.md)
+- [Guide utilisateur](docs/user-guide.md)

@@ -6,6 +6,8 @@
 - npm ;
 - Docker et Docker Compose.
 
+Mailpit est lancé automatiquement par Docker Compose pour intercepter les emails de développement.
+
 ## Avec Docker Compose
 
 ```bash
@@ -31,6 +33,8 @@ curl http://localhost:8080/about.json
 ```
 
 Le frontend est disponible à l’adresse `http://localhost:5173`.
+
+L'interface Mailpit est disponible à `http://localhost:8025`.
 
 ## Arrêt
 

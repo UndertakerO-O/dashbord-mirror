@@ -42,42 +42,8 @@ async function seedService(
 }
 
 async function main(): Promise<void> {
-  await seedService('weather', 'Weather information', [
-    {
-      name: 'city_temperature',
-      description: 'Display the current temperature for a city',
-      parameters: [{ name: 'city', type: 'string' }],
-    },
-    {
-      name: 'city_forecast',
-      description: 'Display the forecast for a city',
-      parameters: [{ name: 'city', type: 'string' }],
-    },
-  ]);
-
-  await seedService('rss', 'RSS feed information', [
-    {
-      name: 'article_list',
-      description: 'Display the latest articles from a feed',
-      parameters: [
-        { name: 'link', type: 'string' },
-        { name: 'number', type: 'integer' },
-      ],
-    },
-  ]);
-
-  await seedService('github', 'GitHub repository information', [
-    {
-      name: 'recent_commits',
-      description: 'Display recent commits from a repository',
-      parameters: [
-        { name: 'repository', type: 'string' },
-        { name: 'number', type: 'integer' },
-      ],
-    },
-  ]);
+  // Aucun service n'est initialisé tant qu'un connecteur fonctionnel n'est pas disponible.
 }
-
 main()
   .catch((error) => {
     console.error(error);

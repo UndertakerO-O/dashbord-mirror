@@ -12,7 +12,7 @@ const showPassword = ref(false);
 const showConfirmation = ref(false);
 const error = ref('');
 const loading = ref(false);
-const confirmationToken = ref('');
+const emailSent = ref(false);
 
 const passwordRules = computed(() => [
   { label: 'At least 8 characters', valid: password.value.length >= 8 },
@@ -35,8 +35,8 @@ async function submit(): Promise<void> {
   loading.value = true;
   error.value = '';
   try {
-    const result = await authApi.signup(email.value, password.value);
-    confirmationToken.value = result.confirmationToken;
+    await authApi.signup(email.value, password.value);
+    emailSent.value = true;
   } catch (cause) {
     error.value = cause instanceof Error ? cause.message : 'Unable to create the account';
   } finally {
@@ -50,12 +50,9 @@ async function submit(): Promise<void> {
     <template #title>Create your account</template>
     <template #subtitle>Set up your personal information dashboard.</template>
 
-    <div v-if="confirmationToken" class="alert alert-success" role="status">
+    <div v-if="emailSent" class="alert alert-success" role="status">
       <strong>Account created.</strong>
-      <p class="mb-2">Confirm your account before signing in.</p>
-      <RouterLink :to="{ path: '/confirm', query: { token: confirmationToken } }">
-        Confirm my account
-      </RouterLink>
+      <p class="mb-0">Check your email and click the confirmation link before signing in.</p>
     </div>
 
     <form v-else @submit.prevent="submit" novalidate>

@@ -1,16 +1,16 @@
 # OAuth GitHub manuel
 
-Le projet utilise le flux OAuth GitHub sans bibliothèque qui abstrait le protocole.
+Le projet utilise le flux OAuth GitHub
 
 ## Configuration
 
 1. Créer une OAuth App dans GitHub.
 2. Déclarer cette callback URL : `http://localhost:8080/auth/github/callback`.
-3. Copier les valeurs dans `backend/.env` à partir de `.env.example` :
+3. Copier les valeurs dans le fichier `.env` à la racine du projet, à partir de `backend/.env.example` :
    - `GITHUB_CLIENT_ID`
    - `GITHUB_CLIENT_SECRET`
    - `GITHUB_REDIRECT_URI`
-   - `OAUTH_ENCRYPTION_KEY` : 32 octets aléatoires encodés en hexadécimal, soit 64 caractères.
+   - `OAUTH_ENCRYPTION_KEY` : 32 octets aléatoires encodés en hexadécimal, soit 64 caractères. (peut etre generer avec : `openssl rand -hex 32`)
 
 ## Flux implémenté
 

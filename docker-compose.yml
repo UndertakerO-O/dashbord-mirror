@@ -12,6 +12,14 @@ services:
     volumes:
       - dashboard-postgres-data:/var/lib/postgresql/data
 
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: dashboard-mailpit
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+
   backend:
     build:
       context: ./backend
@@ -26,10 +34,14 @@ services:
       GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
       GITHUB_REDIRECT_URI: ${GITHUB_REDIRECT_URI:-http://localhost:8080/auth/github/callback}
       OAUTH_ENCRYPTION_KEY: ${OAUTH_ENCRYPTION_KEY:-}
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      MAIL_FROM: no-reply@dashboard.local
     ports:
       - "8080:8000"
     depends_on:
       - database
+      - mailpit
 
   frontend:
     build:
