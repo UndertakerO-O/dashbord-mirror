@@ -4,7 +4,7 @@ import { PrismaService } from '../database/prisma.service';
 import { encryptOAuthToken } from './oauth-token.crypto';
 
 const PROVIDER = 'github';
-const STATE_DURATION_MS = 10 * 60 * 1000;
+const STATE_DURATION_MS = 10 * 60 * 1000; // 10 min
 
 @Injectable()
 export class GitHubOAuthService {
@@ -52,7 +52,8 @@ export class GitHubOAuthService {
 
   private async exchangeCode(code: string, clientId: string, clientSecret: string, redirectUri: string): Promise<string> {
     const response = await fetch('https://github.com/login/oauth/access_token', {
-      method: 'POST', headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'User-Agent': 'dashboard-project' },
+      method: 'POST',
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'User-Agent': 'dashboard-project' },
       body: JSON.stringify({ client_id: clientId, client_secret: clientSecret, code, redirect_uri: redirectUri }),
     });
     const data = (await response.json()) as { access_token?: string; error_description?: string };

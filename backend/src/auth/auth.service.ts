@@ -5,6 +5,7 @@ import { PrismaService } from '../database/prisma.service';
 import { UsersRepository } from '../users/users.repository';
 import { LoginDto } from './dto/login.dto';
 import { SignupDto } from './dto/signup.dto';
+import { MailService } from '../mail/mail.service';
 
 const scrypt = promisify(scryptCallback);
 const SESSION_DURATION_MS = 1000 * 60 * 60 * 24 * 7;
@@ -14,6 +15,7 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly usersRepository: UsersRepository,
+    private readonly mailService: MailService,
   ) {}
 
   async signup(dto: SignupDto) {
@@ -31,8 +33,8 @@ export class AuthService {
       confirmationExpiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24),
     });
 
-    // En production, ce token serait envoyé par email plutôt que retourné.
-    return { id: user.id, email: user.email, confirmationToken };
+    await this.mailService.sendConfirmationEmail(user.email, confirmationToken);
+    return { id: user.id, email: user.email, message: 'Confirmation email sent' };
   }
 
   async confirm(token: string): Promise<void> {
