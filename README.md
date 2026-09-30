@@ -30,7 +30,7 @@ Bootstrap est utilisé uniquement pour les styles généraux, les formulaires et
 
 ```bash
 docker compose build
-docker compose up -d
+docker compose up
 ```
 
 Pour une première installation, appliquer les migrations et le seed :
