@@ -119,7 +119,24 @@ http://localhost:5173/dashboard?github=cancelled
 
 Le secret GitHub reste uniquement côté backend. Le token GitHub est chiffré avant d'être enregistré en base et n'est jamais envoyé au frontend.
 
-## 7. Problèmes fréquents
+## 7. Widgets GitHub
+
+Une fois GitHub connecté, le dashboard permet de consulter des informations réelles depuis un dépôt :
+
+- commits récents ;
+- pull requests ouvertes ;
+- issues ouvertes.
+
+Chaque widget GitHub est configurable avec :
+
+- un dépôt au format `owner/repository` ;
+- un nombre d'éléments à récupérer.
+
+Le premier widget disponible dans l'interface est celui des commits récents. Saisir un dépôt puis cliquer sur `Load commits`.
+
+Les appels sont effectués par le backend avec le token OAuth chiffré. Le token GitHub n'est jamais exposé au frontend.
+
+## 8. Problèmes fréquents
 
 ### Email non reçu dans Mailpit
 
