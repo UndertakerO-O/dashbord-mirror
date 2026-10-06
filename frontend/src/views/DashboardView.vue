@@ -5,7 +5,6 @@ import { authApi, type GitHubActivity, type GitHubCommit, type GitHubPullRequest
 
 const route = useRoute();
 const router = useRouter();
-const userId = ref<number>();
 const loading = ref(true);
 const githubConnected = ref(false);
 const githubLoading = ref(false);
@@ -51,9 +50,7 @@ async function loadWidget(widget: DashboardWidget): Promise<void> {
   finally { widget.loading = false; }
 }
 
-authApi.me().then((user) => {
-  userId.value = user.userId;
-}).finally(async () => {
+authApi.me().finally(async () => {
   try {
     githubConnected.value = (await authApi.githubStatus()).connected;
   } finally {
@@ -137,8 +134,6 @@ async function logout(): Promise<void> {
             <div class="empty-icon mb-3" aria-hidden="true">+</div>
             <h2 id="empty-title" class="h4">Your dashboard is empty</h2>
             <p class="text-secondary mb-4">Choose a service and add your first configurable widget.</p>
-            <button class="btn btn-primary" type="button" disabled>Add a widget</button>
-            <small class="text-secondary mt-3">Signed in as user #{{ userId }}</small>
           </section>
         </section>
 
