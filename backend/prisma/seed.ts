@@ -53,7 +53,7 @@ async function main(): Promise<void> {
   ]);
 
   await seedService('weather', 'Weather information from Open-Meteo', [
-    { name: 'current_weather', description: 'Display current weather for coordinates', parameters: [{ name: 'latitude', type: 'number' }, { name: 'longitude', type: 'number' }, { name: 'unit', type: 'string' }] },
+    { name: 'current_weather', description: 'Display current weather for a city', parameters: [{ name: 'latitude', type: 'number' }, { name: 'longitude', type: 'number' }, { name: 'unit', type: 'string' }] },
   ]);
 }
 main()
