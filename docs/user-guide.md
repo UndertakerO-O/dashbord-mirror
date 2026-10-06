@@ -132,7 +132,16 @@ Chaque widget GitHub est configurable avec :
 - un dépôt au format `owner/repository` ;
 - un nombre d'éléments à récupérer.
 
-Le premier widget disponible dans l'interface est celui des commits récents. Saisir un dépôt puis cliquer sur `Load commits`.
+Le dashboard permet de gérer plusieurs widgets au même endroit :
+
+1. cliquer sur `Add GitHub widget` pour ajouter une carte ;
+2. saisir le dépôt au format `organisation/repository` ;
+3. choisir le nombre de commits à afficher ;
+4. cliquer sur `Load commits` ;
+5. utiliser `↑` ou `↓` pour réorganiser les cartes ;
+6. cliquer sur `Remove` pour retirer une carte.
+
+La configuration des widgets est conservée dans le `localStorage` du navigateur. Les résultats GitHub sont rechargés avec le bouton `Load commits`.
 
 Les appels sont effectués par le backend avec le token OAuth chiffré. Le token GitHub n'est jamais exposé au frontend.
 
