@@ -16,6 +16,8 @@ export interface GitHubPullRequest { number: number; title: string; html_url: st
 
 export interface GitHubActivity { id: string; type: string; repo?: { name?: string }; actor?: { login?: string }; created_at?: string }
 
+export interface WeatherData { latitude: number; longitude: number; current: { temperature_2m: number; relative_humidity_2m: number; wind_speed_10m: number; weather_code: number } }
+
 export interface AuthUser {
   userId: number;
 }
@@ -60,11 +62,19 @@ export const authApi = {
   },
 
   githubWidget<T = GitHubCommit[]>(widget: string, configuration: Record<string, string>) {
-    const params = new URLSearchParams(configuration);
-    return request<T>(`/widgets/github/${widget}?${params.toString()}`);
+    return widgetRequest<T>('github', widget, configuration);
+  },
+
+  weatherWidget(configuration: Record<string, string>) {
+    return widgetRequest<WeatherData>('weather', 'current_weather', configuration);
   },
 
   me() {
     return request<AuthUser>('/auth/me');
   },
 };
+
+function widgetRequest<T>(service: string, widget: string, configuration: Record<string, string>): Promise<T> {
+  const params = new URLSearchParams(configuration);
+  return request<T>(`/widgets/${service}/${widget}?${params.toString()}`);
+}

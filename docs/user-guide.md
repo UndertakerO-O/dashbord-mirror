@@ -152,6 +152,14 @@ Deux autres widgets sont disponibles :
 
 L'activité de contribution utilise les événements publics GitHub récents. Elle ne représente donc pas l'intégralité du calendrier privé de contributions.
 
+Le service `Weather` est disponible sans connexion OAuth. Le widget `Current weather` demande :
+
+- une latitude ;
+- une longitude ;
+- une unité `Metric` ou `Imperial`.
+
+Par défaut, le widget utilise Paris (`48.8566`, `2.3522`). Les données viennent de l'API Open-Meteo.
+
 ## 8. Problèmes fréquents
 
 ### Email non reçu dans Mailpit
