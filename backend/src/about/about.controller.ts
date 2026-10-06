@@ -18,6 +18,7 @@ export class AboutController {
               { name: 'recent_commits', description: 'Display recent commits from a repository', params: [{ name: 'repository', type: 'string' }, { name: 'number', type: 'integer' }] },
               { name: 'open_pull_requests', description: 'Display open pull requests from a repository', params: [{ name: 'repository', type: 'string' }, { name: 'number', type: 'integer' }] },
               { name: 'open_issues', description: 'Display open issues from a repository', params: [{ name: 'repository', type: 'string' }, { name: 'number', type: 'integer' }] },
+              { name: 'contribution_activity', description: 'Display recent public activity for a GitHub user', params: [{ name: 'username', type: 'string' }, { name: 'number', type: 'integer' }] },
             ],
           },
         ],

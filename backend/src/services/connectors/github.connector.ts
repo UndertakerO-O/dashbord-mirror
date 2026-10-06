@@ -17,6 +17,10 @@ export class GitHubConnector implements ServiceConnector {
 
     const token = decryptOAuthToken(connection.accessTokenCipher);
     const number = this.limit(configuration.number);
+    if (widgetName === 'contribution_activity') {
+      const username = this.username(configuration.username);
+      return this.githubRequest(`/users/${encodeURIComponent(username)}/events?per_page=${number}`, token);
+    }
     const repository = this.repository(configuration.repository);
     if (widgetName === 'recent_commits') {
       return this.githubRequest(`/repos/${repository}/commits?per_page=${number}`, token);
@@ -33,6 +37,13 @@ export class GitHubConnector implements ServiceConnector {
   private repository(value: unknown): string {
     if (typeof value !== 'string' || !/^[^/]+\/[^/]+$/.test(value)) {
       throw new ServiceUnavailableException('repository must use the owner/name format');
+    }
+    return value;
+  }
+
+  private username(value: unknown): string {
+    if (typeof value !== 'string' || !/^[A-Za-z0-9-]+$/.test(value)) {
+      throw new ServiceUnavailableException('username must be a valid GitHub username');
     }
     return value;
   }
