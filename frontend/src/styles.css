@@ -151,3 +151,5 @@ a { color: #3730a3; }
 .btn-outline-danger { --bs-btn-color: #a61b1b; --bs-btn-border-color: #a61b1b; --bs-btn-hover-color: #ffffff; --bs-btn-hover-bg: #a61b1b; --bs-btn-hover-border-color: #a61b1b; }
 .form-control::placeholder { color: #52627a; opacity: 1; }
 .btn:focus-visible, .form-control:focus-visible, .form-select:focus-visible, a:focus-visible { outline: 3px solid #f59e0b; outline-offset: 2px; }
+
+.dashboard-shell .navbar .btn-outline-secondary { --bs-btn-color: #ffffff; --bs-btn-border-color: #ffffff; --bs-btn-hover-color: #172554; --bs-btn-hover-bg: #ffffff; --bs-btn-hover-border-color: #ffffff; }
