@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { authApi, type GitHubActivity, type GitHubCommit, type GitHubPullRequest, type WeatherCity, type WeatherData } from '../api/auth';
 
@@ -9,6 +9,8 @@ const loading = ref(true);
 const githubConnected = ref(false);
 const githubLoading = ref(false);
 const githubMessage = ref('');
+const refreshRate = ref(60);
+let refreshTimer: ReturnType<typeof setInterval> | undefined;
 
 type WidgetKind = 'recent_commits' | 'open_pull_requests' | 'contribution_activity' | 'current_weather';
 type DashboardWidget = { id: string; service: 'github' | 'weather'; kind: WidgetKind; city: string; cityQuery: string; cityResults: WeatherCity[]; citySearchLoading: boolean; repository: string; username: string; latitude: string; longitude: string; unit: 'metric' | 'imperial'; number: number; data: GitHubCommit[] | GitHubPullRequest[] | GitHubActivity[] | WeatherData[]; loading: boolean; error: string };
@@ -16,7 +18,24 @@ const visibleWidgets = computed(() => widgets.value.filter((widget) => widget.se
 const widgets = ref<DashboardWidget[]>([]);
 
 function saveWidgets(): void {
-  localStorage.setItem('dashboard_widgets', JSON.stringify(widgets.value.map(({ data, loading, error, ...widget }) => widget)));
+  localStorage.setItem('dashboard_widgets', JSON.stringify(widgets.value.map(({ loading, error, cityResults, citySearchLoading, ...widget }) => ({ ...widget, data: widget.data }))));
+  localStorage.setItem('dashboard_refresh_rate', String(refreshRate.value));
+}
+
+
+function configureRefresh(): void {
+  if (refreshTimer) clearInterval(refreshTimer);
+  if (refreshRate.value > 0) refreshTimer = setInterval(refreshWidgets, refreshRate.value * 1000);
+}
+
+async function refreshWidgets(): Promise<void> {
+  const widgetsToRefresh = widgets.value.filter((widget) => widget.service === 'weather' || githubConnected.value);
+  await Promise.all(widgetsToRefresh.map((widget) => loadWidget(widget)));
+}
+
+function changeRefreshRate(): void {
+  localStorage.setItem('dashboard_refresh_rate', String(refreshRate.value));
+  configureRefresh();
 }
 
 async function searchCities(widget: DashboardWidget): Promise<void> {
@@ -83,12 +102,16 @@ onMounted(() => {
   const saved = localStorage.getItem('dashboard_widgets');
   if (saved) {
     try {
-      widgets.value = (JSON.parse(saved) as Array<Partial<DashboardWidget>>).map((widget, index) => ({ id: widget.id ?? `github-${index}`, service: widget.service ?? (widget.kind === 'current_weather' ? 'weather' : 'github'), kind: widget.kind ?? 'recent_commits', city: widget.city ?? 'Paris', cityQuery: '', cityResults: [], citySearchLoading: false, repository: widget.repository ?? '', username: widget.username ?? '', latitude: widget.latitude ?? '48.8566', longitude: widget.longitude ?? '2.3522', unit: widget.unit ?? 'metric', number: Number(widget.number) || 5, data: [], loading: false, error: '' }));
+      widgets.value = (JSON.parse(saved) as Array<Partial<DashboardWidget>>).map((widget, index) => ({ id: widget.id ?? `github-${index}`, service: widget.service ?? (widget.kind === 'current_weather' ? 'weather' : 'github'), kind: widget.kind ?? 'recent_commits', city: widget.city ?? 'Paris', cityQuery: '', cityResults: [], citySearchLoading: false, repository: widget.repository ?? '', username: widget.username ?? '', latitude: widget.latitude ?? '48.8566', longitude: widget.longitude ?? '2.3522', unit: widget.unit ?? 'metric', number: Number(widget.number) || 5, data: (widget.data as DashboardWidget['data']) ?? [], loading: false, error: '' }));
     } catch { localStorage.removeItem('dashboard_widgets'); }
   }
   if (route.query.github === 'connected') githubMessage.value = 'GitHub connected successfully.';
   if (route.query.github === 'cancelled') githubMessage.value = 'GitHub connection was cancelled.';
+  refreshRate.value = Number(localStorage.getItem('dashboard_refresh_rate') ?? 60);
+  configureRefresh();
 });
+
+onUnmounted(() => { if (refreshTimer) clearInterval(refreshTimer); });
 
 function connectGithub(): void {
   authApi.startGithubConnection();
@@ -124,7 +147,7 @@ async function logout(): Promise<void> {
       <div class="mb-5">
         <p class="eyebrow mb-2">YOUR SPACE</p>
         <h1 class="display-6 fw-semibold">Good morning</h1>
-        <p class="text-secondary mb-0">Your widgets will appear here as you build your dashboard.</p>
+        <p class="text-secondary mb-0">Your widgets will appear here as you build your dashboard.</p><div class="refresh-control mt-3"><label class="form-label mb-1" for="refresh-rate">Automatic refresh</label><select id="refresh-rate" v-model.number="refreshRate" class="form-select form-select-sm" @change="changeRefreshRate"><option :value="0">Off</option><option :value="30">Every 30 seconds</option><option :value="60">Every minute</option><option :value="300">Every 5 minutes</option></select></div>
       </div>
 
       <div v-if="githubMessage" class="alert alert-info" role="status">{{ githubMessage }}</div>

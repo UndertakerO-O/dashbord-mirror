@@ -159,7 +159,19 @@ Le service `Weather` est disponible sans connexion OAuth. Le widget `Current wea
 
 Rechercher une ville, sélectionner le résultat proposé, puis charger la météo. Les coordonnées sont récupérées automatiquement depuis l'API de géocodage Open-Meteo.
 
-## 8. Problèmes fréquents
+## 8. Sauvegarde et actualisation
+
+Le dashboard conserve dans le navigateur :
+
+- les widgets ajoutés ;
+- leur ordre ;
+- leur configuration ;
+- les derniers résultats chargés ;
+- la fréquence d'actualisation.
+
+La fréquence peut être désactivée ou réglée sur 30 secondes, 1 minute ou 5 minutes. À chaque actualisation, les appels API des widgets disponibles sont relancés.
+
+## 9. Problèmes fréquents
 
 ### Email non reçu dans Mailpit
 
