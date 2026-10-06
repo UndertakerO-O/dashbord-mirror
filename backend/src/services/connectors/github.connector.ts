@@ -50,7 +50,16 @@ export class GitHubConnector implements ServiceConnector {
         'User-Agent': 'dashboard-project',
       },
     });
-    if (!response.ok) throw new ServiceUnavailableException('GitHub API request failed');
+    if (!response.ok) {
+      const data = (await response.json().catch(() => null)) as { message?: string } | null;
+      if (response.status === 404) {
+        throw new ServiceUnavailableException('Repository not found or not accessible with the current GitHub permissions');
+      }
+      if (response.status === 403) {
+        throw new ServiceUnavailableException(data?.message ?? 'GitHub access denied. Reconnect GitHub with repository permissions');
+      }
+      throw new ServiceUnavailableException(data?.message ?? ('GitHub API request failed (' + response.status + ')'));
+    }
     return response.json();
   }
 }

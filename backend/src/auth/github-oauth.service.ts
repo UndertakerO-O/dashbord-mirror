@@ -19,7 +19,7 @@ export class GitHubOAuthService {
     const params = new URLSearchParams({
       client_id: config.clientId,
       redirect_uri: config.redirectUri,
-      scope: 'read:user user:email',
+      scope: process.env.GITHUB_OAUTH_SCOPES ?? 'read:user user:email repo',
       state,
     });
     return `https://github.com/login/oauth/authorize?${params.toString()}`;
@@ -102,7 +102,10 @@ export class GitHubOAuthService {
     const response = await fetch(`https://api.github.com${path}`, {
       headers: { Accept: 'application/vnd.github+json', Authorization: `Bearer ${accessToken}`, 'User-Agent': 'dashboard-project' },
     });
-    if (!response.ok) throw new ServiceUnavailableException('GitHub profile request failed');
+    if (!response.ok) {
+      const data = (await response.json().catch(() => null)) as { message?: string } | null;
+      throw new ServiceUnavailableException(data?.message ?? ('GitHub profile request failed (' + response.status + ')'));
+    }
     return (await response.json()) as T;
   }
 
