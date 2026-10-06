@@ -22,7 +22,7 @@ CREATE TABLE "Session" (
 
 CREATE TABLE "OAuthState" (
     "id" TEXT NOT NULL,
-    "userId" INTEGER NOT NULL,
+    "userId" INTEGER,
     "stateHash" VARCHAR(128) NOT NULL,
     "expiresAt" TIMESTAMP(3) NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,

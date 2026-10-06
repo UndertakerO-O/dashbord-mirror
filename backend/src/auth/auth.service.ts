@@ -58,16 +58,21 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials or unconfirmed account');
     }
 
+    const sessionToken = await this.createSession(user.id);
+    return { sessionToken, userId: user.id };
+  }
+
+  // Crée une session pour un utilisateur authentifié localement ou par OAuth.
+  async createSession(userId: number): Promise<string> {
     const sessionToken = randomBytes(32).toString('hex');
     await this.prisma.session.create({
       data: {
-        userId: user.id,
+        userId,
         tokenHash: this.hashToken(sessionToken),
         expiresAt: new Date(Date.now() + SESSION_DURATION_MS),
       },
     });
-
-    return { sessionToken, userId: user.id };
+    return sessionToken;
   }
 
   async logout(sessionToken: string | undefined): Promise<void> {

@@ -37,11 +37,11 @@ model Session {
 
 model OAuthState {
   id        String   @id @default(cuid())
-  userId    Int
+  userId    Int?
   stateHash String   @unique @db.VarChar(128)
   expiresAt DateTime
   createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([expiresAt])
 }
