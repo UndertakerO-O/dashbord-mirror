@@ -51,6 +51,10 @@ async function main(): Promise<void> {
     { name: 'open_issues', description: 'Display open issues from a repository', parameters: [{ name: 'repository', type: 'string' }, { name: 'number', type: 'integer' }] },
     { name: 'contribution_activity', description: 'Display recent public activity for a GitHub user', parameters: [{ name: 'username', type: 'string' }, { name: 'number', type: 'integer' }] },
   ]);
+
+  await seedService('weather', 'Weather information from Open-Meteo', [
+    { name: 'current_weather', description: 'Display current weather for coordinates', parameters: [{ name: 'latitude', type: 'number' }, { name: 'longitude', type: 'number' }, { name: 'unit', type: 'string' }] },
+  ]);
 }
 main()
   .catch((error) => {

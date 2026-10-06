@@ -21,6 +21,12 @@ export class AboutController {
               { name: 'contribution_activity', description: 'Display recent public activity for a GitHub user', params: [{ name: 'username', type: 'string' }, { name: 'number', type: 'integer' }] },
             ],
           },
+          {
+            name: 'weather',
+            widgets: [
+              { name: 'current_weather', description: 'Display current weather for coordinates', params: [{ name: 'latitude', type: 'number' }, { name: 'longitude', type: 'number' }, { name: 'unit', type: 'string' }] },
+            ],
+          },
         ],
       },
     };
