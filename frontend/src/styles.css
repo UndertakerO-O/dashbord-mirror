@@ -143,3 +143,11 @@ a { color: #3730a3; }
   .widget-header { flex-direction: column; }
   .widget-actions { justify-content: flex-start; }
 }
+
+
+/* Accessible controls: keep text and focus states readable on light surfaces. */
+.btn-outline-secondary { --bs-btn-color: #263452; --bs-btn-border-color: #52627a; --bs-btn-hover-color: #ffffff; --bs-btn-hover-bg: #263452; --bs-btn-hover-border-color: #263452; --bs-btn-active-color: #ffffff; --bs-btn-active-bg: #172554; --bs-btn-active-border-color: #172554; }
+.btn-outline-primary { --bs-btn-color: #3730a3; --bs-btn-border-color: #3730a3; --bs-btn-hover-color: #ffffff; --bs-btn-hover-bg: #3730a3; --bs-btn-hover-border-color: #3730a3; }
+.btn-outline-danger { --bs-btn-color: #a61b1b; --bs-btn-border-color: #a61b1b; --bs-btn-hover-color: #ffffff; --bs-btn-hover-bg: #a61b1b; --bs-btn-hover-border-color: #a61b1b; }
+.form-control::placeholder { color: #52627a; opacity: 1; }
+.btn:focus-visible, .form-control:focus-visible, .form-select:focus-visible, a:focus-visible { outline: 3px solid #f59e0b; outline-offset: 2px; }
