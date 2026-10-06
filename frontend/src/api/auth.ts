@@ -16,6 +16,8 @@ export interface GitHubPullRequest { number: number; title: string; html_url: st
 
 export interface GitHubActivity { id: string; type: string; repo?: { name?: string }; actor?: { login?: string }; created_at?: string }
 
+export interface WeatherCity { name: string; latitude: number; longitude: number; country?: string; admin1?: string }
+
 export interface WeatherData { latitude: number; longitude: number; current: { temperature_2m: number; relative_humidity_2m: number; wind_speed_10m: number; weather_code: number } }
 
 export interface AuthUser {
@@ -67,6 +69,10 @@ export const authApi = {
 
   weatherWidget(configuration: Record<string, string>) {
     return widgetRequest<WeatherData>('weather', 'current_weather', configuration);
+  },
+
+  weatherCities(name: string) {
+    return widgetRequest<{ results?: WeatherCity[] }>('weather', 'search_cities', { name, count: '8' }).then((response) => response.results ?? []);
   },
 
   me() {

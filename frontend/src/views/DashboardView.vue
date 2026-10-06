@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { authApi, type GitHubActivity, type GitHubCommit, type GitHubPullRequest, type WeatherData } from '../api/auth';
+import { authApi, type GitHubActivity, type GitHubCommit, type GitHubPullRequest, type WeatherCity, type WeatherData } from '../api/auth';
 
 const route = useRoute();
 const router = useRouter();
@@ -11,9 +11,7 @@ const githubLoading = ref(false);
 const githubMessage = ref('');
 
 type WidgetKind = 'recent_commits' | 'open_pull_requests' | 'contribution_activity' | 'current_weather';
-type City = { name: string; latitude: string; longitude: string };
-const cities: City[] = [{ name: 'Paris', latitude: '48.8566', longitude: '2.3522' }, { name: 'Lyon', latitude: '45.7640', longitude: '4.8357' }, { name: 'Marseille', latitude: '43.2965', longitude: '5.3698' }, { name: 'Lille', latitude: '50.6292', longitude: '3.0573' }, { name: 'Bordeaux', latitude: '44.8378', longitude: '-0.5792' }, { name: 'Toulouse', latitude: '43.6047', longitude: '1.4442' }, { name: 'London', latitude: '51.5072', longitude: '-0.1276' }, { name: 'New York', latitude: '40.7128', longitude: '-74.0060' }, { name: 'Tokyo', latitude: '35.6762', longitude: '139.6503' }];
-type DashboardWidget = { id: string; service: 'github' | 'weather'; kind: WidgetKind; city: string; repository: string; username: string; latitude: string; longitude: string; unit: 'metric' | 'imperial'; number: number; data: GitHubCommit[] | GitHubPullRequest[] | GitHubActivity[] | WeatherData[]; loading: boolean; error: string };
+type DashboardWidget = { id: string; service: 'github' | 'weather'; kind: WidgetKind; city: string; cityQuery: string; cityResults: WeatherCity[]; citySearchLoading: boolean; repository: string; username: string; latitude: string; longitude: string; unit: 'metric' | 'imperial'; number: number; data: GitHubCommit[] | GitHubPullRequest[] | GitHubActivity[] | WeatherData[]; loading: boolean; error: string };
 const visibleWidgets = computed(() => widgets.value.filter((widget) => widget.service === 'weather' || githubConnected.value));
 const widgets = ref<DashboardWidget[]>([]);
 
@@ -21,11 +19,25 @@ function saveWidgets(): void {
   localStorage.setItem('dashboard_widgets', JSON.stringify(widgets.value.map(({ data, loading, error, ...widget }) => widget)));
 }
 
-function selectCity(widget: DashboardWidget): void { const city = cities.find((item) => item.name === widget.city); if (city) { widget.latitude = city.latitude; widget.longitude = city.longitude; } }
+async function searchCities(widget: DashboardWidget): Promise<void> {
+  if (widget.cityQuery.trim().length < 2) { widget.cityResults = []; return; }
+  widget.citySearchLoading = true;
+  try { widget.cityResults = await authApi.weatherCities(widget.cityQuery.trim()); }
+  catch (cause) { widget.error = cause instanceof Error ? cause.message : 'Unable to search cities.'; }
+  finally { widget.citySearchLoading = false; }
+}
+
+function selectCity(widget: DashboardWidget, city: WeatherCity): void {
+  widget.city = city.name;
+  widget.cityQuery = city.name;
+  widget.latitude = String(city.latitude);
+  widget.longitude = String(city.longitude);
+  widget.cityResults = [];
+}
 
 function addWidget(kind: WidgetKind = 'recent_commits'): void {
   const service = kind === 'current_weather' ? 'weather' : 'github';
-  widgets.value.push({ id: `${service}-${Date.now()}`, service, kind, city: 'Paris', repository: '', username: '', latitude: '48.8566', longitude: '2.3522', unit: 'metric', number: 5, data: [], loading: false, error: '' });
+  widgets.value.push({ id: `${service}-${Date.now()}`, service, kind, city: 'Paris', cityQuery: '', cityResults: [], citySearchLoading: false, repository: '', username: '', latitude: '48.8566', longitude: '2.3522', unit: 'metric', number: 5, data: [], loading: false, error: '' });
   saveWidgets();
 }
 
@@ -71,7 +83,7 @@ onMounted(() => {
   const saved = localStorage.getItem('dashboard_widgets');
   if (saved) {
     try {
-      widgets.value = (JSON.parse(saved) as Array<Partial<DashboardWidget>>).map((widget, index) => ({ id: widget.id ?? `github-${index}`, service: widget.service ?? (widget.kind === 'current_weather' ? 'weather' : 'github'), kind: widget.kind ?? 'recent_commits', city: widget.city ?? 'Paris', repository: widget.repository ?? '', username: widget.username ?? '', latitude: widget.latitude ?? '48.8566', longitude: widget.longitude ?? '2.3522', unit: widget.unit ?? 'metric', number: Number(widget.number) || 5, data: [], loading: false, error: '' }));
+      widgets.value = (JSON.parse(saved) as Array<Partial<DashboardWidget>>).map((widget, index) => ({ id: widget.id ?? `github-${index}`, service: widget.service ?? (widget.kind === 'current_weather' ? 'weather' : 'github'), kind: widget.kind ?? 'recent_commits', city: widget.city ?? 'Paris', cityQuery: '', cityResults: [], citySearchLoading: false, repository: widget.repository ?? '', username: widget.username ?? '', latitude: widget.latitude ?? '48.8566', longitude: widget.longitude ?? '2.3522', unit: widget.unit ?? 'metric', number: Number(widget.number) || 5, data: [], loading: false, error: '' }));
     } catch { localStorage.removeItem('dashboard_widgets'); }
   }
   if (route.query.github === 'connected') githubMessage.value = 'GitHub connected successfully.';
@@ -130,7 +142,7 @@ async function logout(): Promise<void> {
                 <button class="btn btn-sm btn-outline-danger" type="button" @click="removeWidget(index)">Remove</button>
               </div></div>
               <form class="row g-2 mt-3" @submit.prevent="loadWidget(widget)">
-                <div v-if="widget.kind === 'contribution_activity'" class="col-md-7"><label class="form-label" :for="`username-${widget.id}`">GitHub username</label><input :id="`username-${widget.id}`" v-model="widget.username" class="form-control" placeholder="github-username" /></div><div v-else-if="widget.kind === 'current_weather'" class="col-md-7"><label class="form-label" :for="`city-${widget.id}`">City</label><select :id="`city-${widget.id}`" v-model="widget.city" class="form-select" @change="selectCity(widget)"><option v-for="city in cities" :key="city.name" :value="city.name">{{ city.name }}</option></select></div><div v-else class="col-md-7"><label class="form-label" :for="`repository-${widget.id}`">Repository</label><input :id="`repository-${widget.id}`" v-model="widget.repository" class="form-control" placeholder="organisation/repository" /></div>
+                <div v-if="widget.kind === 'contribution_activity'" class="col-md-7"><label class="form-label" :for="`username-${widget.id}`">GitHub username</label><input :id="`username-${widget.id}`" v-model="widget.username" class="form-control" placeholder="github-username" /></div><div v-else-if="widget.kind === 'current_weather'" class="col-md-7"><label class="form-label" :for="`city-${widget.id}`">City</label><div class="input-group"><input :id="`city-${widget.id}`" v-model="widget.cityQuery" class="form-control" placeholder="Search a city" @keyup.enter.prevent="searchCities(widget)" /><button class="btn btn-outline-primary" type="button" :disabled="widget.citySearchLoading" @click="searchCities(widget)">{{ widget.citySearchLoading ? 'Searching…' : 'Search' }}</button></div><div v-if="widget.cityResults.length" class="list-group city-results mt-2"><button v-for="city in widget.cityResults" :key="`${city.name}-${city.latitude}-${city.longitude}`" class="list-group-item list-group-item-action" type="button" @click="selectCity(widget, city)">{{ city.name }}<small class="d-block text-secondary">{{ [city.admin1, city.country].filter(Boolean).join(', ') }}</small></button></div><small v-if="widget.city" class="d-block text-secondary mt-1">Selected: {{ widget.city }}</small></div><div v-else class="col-md-7"><label class="form-label" :for="`repository-${widget.id}`">Repository</label><input :id="`repository-${widget.id}`" v-model="widget.repository" class="form-control" placeholder="organisation/repository" /></div>
                 <div v-if="widget.kind === 'current_weather'" class="col-md-2"><label class="form-label" :for="`unit-${widget.id}`">Unit</label><select :id="`unit-${widget.id}`" v-model="widget.unit" class="form-select"><option value="metric">Metric</option><option value="imperial">Imperial</option></select></div><div v-else class="col-md-2"><label class="form-label" :for="`number-${widget.id}`">Number</label><input :id="`number-${widget.id}`" v-model.number="widget.number" class="form-control" type="number" min="1" max="20" /></div>
                 <div class="col-md-3 d-flex align-items-end"><button class="btn btn-primary w-100" type="submit" :disabled="widget.loading">{{ widget.loading ? 'Loading…' : 'Load data' }}</button></div>
               </form>

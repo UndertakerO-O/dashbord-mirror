@@ -154,10 +154,10 @@ L'activité de contribution utilise les événements publics GitHub récents. El
 
 Le service `Weather` est disponible sans connexion OAuth. Le widget `Current weather` demande :
 
-- une ville prédéfinie ;
+- une ville recherchée depuis Open-Meteo ;
 - une unité `Metric` ou `Imperial`.
 
-Par défaut, le widget utilise Paris (`48.8566`, `2.3522`). Les données viennent de l'API Open-Meteo.
+Rechercher une ville, sélectionner le résultat proposé, puis charger la météo. Les coordonnées sont récupérées automatiquement depuis l'API de géocodage Open-Meteo.
 
 ## 8. Problèmes fréquents
 
