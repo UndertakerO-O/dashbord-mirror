@@ -1,4 +1,4 @@
-import { request } from './http';
+import { API_URL, request } from './http';
 
 export interface SignupResponse {
   id: number;
@@ -31,6 +31,22 @@ export const authApi = {
 
   logout() {
     return request<{ message: string }>('/auth/logout', { method: 'POST' });
+  },
+
+  startGithubLogin() {
+    window.location.assign(`${API_URL}/auth/github/login`);
+  },
+
+  startGithubConnection() {
+    window.location.assign(`${API_URL}/auth/github`);
+  },
+
+  githubStatus() {
+    return request<{ connected: boolean }>('/auth/github/status');
+  },
+
+  disconnectGithub() {
+    return request<{ message: string }>('/auth/github', { method: 'DELETE' });
   },
 
   me() {

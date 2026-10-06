@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 import AuthLayout from '../components/AuthLayout.vue';
 import { authApi } from '../api/auth';
@@ -11,6 +11,17 @@ const password = ref('');
 const showPassword = ref(false);
 const error = ref('');
 const loading = ref(false);
+
+// Affiche le résultat d'une tentative de connexion GitHub non liée.
+onMounted(() => {
+  if (route.query.github === 'not-linked') {
+    error.value = 'This GitHub account is not linked to a local account yet.';
+  }
+});
+
+function loginWithGithub(): void {
+  authApi.startGithubLogin();
+}
 
 async function submit(): Promise<void> {
   loading.value = true;
@@ -67,6 +78,12 @@ async function submit(): Promise<void> {
 
       <button class="btn btn-primary w-100" type="submit" :disabled="loading || !email || !password">
         {{ loading ? 'Signing in…' : 'Sign in' }}
+      </button>
+
+      <div class="oauth-divider" aria-hidden="true"><span>or</span></div>
+
+      <button class="btn btn-outline-dark w-100" type="button" @click="loginWithGithub">
+        Continue with GitHub
       </button>
     </form>
 

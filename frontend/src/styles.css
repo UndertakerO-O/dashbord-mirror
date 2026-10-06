@@ -66,3 +66,10 @@ a { color: #3157d5; }
 .password-rules li { color: #6c757d; margin: .25rem 0; transition: color .2s ease; }
 .password-rules li.valid { color: #198754; font-weight: 600; }
 .rule-icon { display: inline-block; width: 1.25rem; font-weight: 700; }
+
+.oauth-divider { display: flex; align-items: center; gap: .75rem; margin: 1.25rem 0; color: #6c757d; font-size: .85rem; }
+.oauth-divider::before, .oauth-divider::after { content: ""; flex: 1; height: 1px; background: #dee2e6; }
+.dashboard-layout { display: flex; align-items: flex-start; gap: 1.5rem; }
+.services-sidebar { width: min(100%, 20rem); border-radius: 1.25rem; }
+.service-item { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+@media (max-width: 767.98px) { .dashboard-layout { flex-direction: column; } .services-sidebar { width: 100%; } }
