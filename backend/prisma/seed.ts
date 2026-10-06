@@ -42,7 +42,11 @@ async function seedService(
 }
 
 async function main(): Promise<void> {
-  // Aucun service n'est initialisé tant qu'un connecteur fonctionnel n'est pas disponible.
+  await seedService('github', 'GitHub account and repository information', [
+    { name: 'profile', description: 'Display the connected GitHub profile', parameters: [] },
+    { name: 'recent_commits', description: 'Display recent commits from a repository', parameters: [{ name: 'repository', type: 'string' }, { name: 'number', type: 'integer' }] },
+    { name: 'open_pull_requests', description: 'Display open pull requests from a repository', parameters: [{ name: 'repository', type: 'string' }, { name: 'number', type: 'integer' }] },
+  ]);
 }
 main()
   .catch((error) => {
