@@ -135,3 +135,11 @@ a { color: #3730a3; }
 }
 
 .github-widget { border: 1px solid #c7d2fe !important; border-radius: 1.25rem; background: #ffffff; }
+
+.widget-grid { display: grid; gap: 1rem; }
+.widget-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.widget-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .35rem; }
+@media (max-width: 575.98px) {
+  .widget-header { flex-direction: column; }
+  .widget-actions { justify-content: flex-start; }
+}

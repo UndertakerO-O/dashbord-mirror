@@ -15,6 +15,37 @@ const githubCommits = ref<GitHubCommit[]>([]);
 const githubWidgetLoading = ref(false);
 const githubWidgetError = ref('');
 
+type DashboardWidget = { id: string; repository: string; number: number; commits: GitHubCommit[]; loading: boolean; error: string };
+const widgets = ref<DashboardWidget[]>([]);
+
+function saveWidgets(): void {
+  localStorage.setItem('dashboard_widgets', JSON.stringify(widgets.value.map(({ commits, loading, error, ...widget }) => widget)));
+}
+
+function addWidget(): void {
+  widgets.value.push({ id: `github-${Date.now()}`, repository: '', number: 5, commits: [], loading: false, error: '' });
+  saveWidgets();
+}
+
+function removeWidget(index: number): void { widgets.value.splice(index, 1); saveWidgets(); }
+
+function moveWidget(index: number, direction: -1 | 1): void {
+  const target = index + direction;
+  if (target < 0 || target >= widgets.value.length) return;
+  [widgets.value[index], widgets.value[target]] = [widgets.value[target], widgets.value[index]];
+  saveWidgets();
+}
+
+async function loadWidget(widget: DashboardWidget): Promise<void> {
+  if (widget.repository.trim().split('/').length !== 2) { widget.error = 'Use the organisation/repository format.'; return; }
+  widget.loading = true; widget.error = '';
+  try {
+    widget.commits = await authApi.githubWidget('recent_commits', { repository: widget.repository.trim(), number: String(Math.min(Math.max(widget.number, 1), 20)) });
+    saveWidgets();
+  } catch (cause) { widget.error = cause instanceof Error ? cause.message : 'Unable to load GitHub commits.'; }
+  finally { widget.loading = false; }
+}
+
 authApi.me().then((user) => {
   userId.value = user.userId;
 }).finally(async () => {
@@ -26,6 +57,12 @@ authApi.me().then((user) => {
 });
 
 onMounted(() => {
+  const saved = localStorage.getItem('dashboard_widgets');
+  if (saved) {
+    try {
+      widgets.value = (JSON.parse(saved) as Array<Partial<DashboardWidget>>).map((widget, index) => ({ id: widget.id ?? `github-${index}`, repository: widget.repository ?? '', number: Number(widget.number) || 5, commits: [], loading: false, error: '' }));
+    } catch { localStorage.removeItem('dashboard_widgets'); }
+  }
   if (route.query.github === 'connected') githubMessage.value = 'GitHub connected successfully.';
   if (route.query.github === 'cancelled') githubMessage.value = 'GitHub connection was cancelled.';
 });
@@ -93,30 +130,23 @@ async function logout(): Promise<void> {
           <div v-if="loading" class="placeholder-glow" aria-live="polite">
             <span class="placeholder col-12 dashboard-placeholder"></span>
           </div>
-          <section v-if="githubConnected" class="github-widget card border-0 shadow-sm p-4 mb-4" aria-labelledby="github-widget-title">
-            <p class="eyebrow mb-2">GITHUB WIDGET</p>
-            <h2 id="github-widget-title" class="h5">Recent commits</h2>
-            <form class="row g-2 mt-2" @submit.prevent="loadGithubCommits">
-              <div class="col-sm-8">
-                <label class="visually-hidden" for="github-repository">Repository</label>
-                <input id="github-repository" v-model="githubRepository" class="form-control" placeholder="owner/repository" />
-              </div>
-              <div class="col-sm-4">
-                <button class="btn btn-primary w-100" type="submit" :disabled="githubWidgetLoading">
-                  {{ githubWidgetLoading ? 'Loading…' : 'Load commits' }}
-                </button>
-              </div>
-            </form>
-            <div v-if="githubWidgetError" class="alert alert-danger mt-3 mb-0" role="alert">{{ githubWidgetError }}</div>
-            <ul v-else-if="githubCommits.length" class="list-group list-group-flush mt-3">
-              <li v-for="commit in githubCommits" :key="commit.sha" class="list-group-item px-0">
-                <a :href="commit.html_url" target="_blank" rel="noreferrer">{{ commit.commit.message.split('\n')[0] }}</a>
-                <small class="d-block text-secondary">{{ commit.commit.author?.name ?? 'Unknown author' }}</small>
-              </li>
-            </ul>
-            <p v-else class="text-secondary mt-3 mb-0">Enter a repository to load its latest commits.</p>
-          </section>
-
+          <div v-if="githubConnected && widgets.length" class="widget-grid">
+            <article v-for="(widget, index) in widgets" :key="widget.id" class="github-widget card border-0 shadow-sm p-4">
+              <div class="widget-header"><div><p class="eyebrow mb-2">GITHUB</p><h2 class="h5 mb-0">Recent commits</h2></div><div class="widget-actions">
+                <button class="btn btn-sm btn-outline-secondary" type="button" :disabled="index === 0" @click="moveWidget(index, -1)">↑</button>
+                <button class="btn btn-sm btn-outline-secondary" type="button" :disabled="index === widgets.length - 1" @click="moveWidget(index, 1)">↓</button>
+                <button class="btn btn-sm btn-outline-danger" type="button" @click="removeWidget(index)">Remove</button>
+              </div></div>
+              <form class="row g-2 mt-3" @submit.prevent="loadWidget(widget)">
+                <div class="col-md-7"><label class="form-label" :for="`repository-${widget.id}`">Repository</label><input :id="`repository-${widget.id}`" v-model="widget.repository" class="form-control" placeholder="organisation/repository" /></div>
+                <div class="col-md-2"><label class="form-label" :for="`number-${widget.id}`">Commits</label><input :id="`number-${widget.id}`" v-model.number="widget.number" class="form-control" type="number" min="1" max="20" /></div>
+                <div class="col-md-3 d-flex align-items-end"><button class="btn btn-primary w-100" type="submit" :disabled="widget.loading">{{ widget.loading ? 'Loading…' : 'Load commits' }}</button></div>
+              </form>
+              <div v-if="widget.error" class="alert alert-danger mt-3 mb-0" role="alert">{{ widget.error }}</div>
+              <ul v-else-if="widget.commits.length" class="list-group list-group-flush mt-3"><li v-for="commit in widget.commits" :key="commit.sha" class="list-group-item px-0"><a :href="commit.html_url" target="_blank" rel="noreferrer">{{ commit.commit.message.split('\n')[0] }}</a><small class="d-block text-secondary">{{ commit.commit.author?.name ?? 'Unknown author' }}</small></li></ul>
+              <p v-else class="text-secondary mt-3 mb-0">Configure this widget, then load the latest commits.</p>
+            </article>
+          </div>
           <section v-else class="empty-dashboard card border-0 shadow-sm p-5 text-center" aria-labelledby="empty-title">
             <div class="empty-icon mb-3" aria-hidden="true">+</div>
             <h2 id="empty-title" class="h4">Your dashboard is empty</h2>
@@ -140,9 +170,12 @@ async function logout(): Promise<void> {
             <button v-if="!githubConnected" class="btn btn-dark w-100 mt-4" type="button" @click="connectGithub">
               Connect GitHub
             </button>
-            <button v-else class="btn btn-outline-secondary w-100 mt-4" type="button" :disabled="githubLoading" @click="disconnectGithub">
+            <template v-else>
+              <button class="btn btn-primary w-100 mt-4" type="button" @click="addWidget">Add GitHub widget</button>
+              <button class="btn btn-outline-secondary w-100 mt-2" type="button" :disabled="githubLoading" @click="disconnectGithub">
               {{ githubLoading ? 'Disconnecting…' : 'Disconnect GitHub' }}
-            </button>
+              </button>
+            </template>
           </div>
         </aside>
       </div>
