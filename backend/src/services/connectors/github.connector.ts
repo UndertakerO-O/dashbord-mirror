@@ -17,14 +17,15 @@ export class GitHubConnector implements ServiceConnector {
 
     const token = decryptOAuthToken(connection.accessTokenCipher);
     const number = this.limit(configuration.number);
-    if (widgetName === 'profile') return this.githubRequest('/user', token);
-
     const repository = this.repository(configuration.repository);
     if (widgetName === 'recent_commits') {
       return this.githubRequest(`/repos/${repository}/commits?per_page=${number}`, token);
     }
     if (widgetName === 'open_pull_requests') {
       return this.githubRequest(`/repos/${repository}/pulls?state=open&per_page=${number}`, token);
+    }
+    if (widgetName === 'open_issues') {
+      return this.githubRequest(`/repos/${repository}/issues?state=open&per_page=${number}`, token);
     }
     throw new NotFoundException('Unknown GitHub widget');
   }
