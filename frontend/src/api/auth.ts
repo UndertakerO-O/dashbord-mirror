@@ -12,6 +12,10 @@ export interface GitHubCommit {
   commit: { message: string; author?: { name?: string } };
 }
 
+export interface GitHubPullRequest { number: number; title: string; html_url: string; user?: { login?: string } }
+
+export interface GitHubActivity { id: string; type: string; repo?: { name?: string }; actor?: { login?: string }; created_at?: string }
+
 export interface AuthUser {
   userId: number;
 }
@@ -55,9 +59,9 @@ export const authApi = {
     return request<{ message: string }>('/auth/github', { method: 'DELETE' });
   },
 
-  githubWidget(widget: string, configuration: Record<string, string>) {
+  githubWidget<T = GitHubCommit[]>(widget: string, configuration: Record<string, string>) {
     const params = new URLSearchParams(configuration);
-    return request<GitHubCommit[]>(`/widgets/github/${widget}?${params.toString()}`);
+    return request<T>(`/widgets/github/${widget}?${params.toString()}`);
   },
 
   me() {

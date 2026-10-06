@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { authApi, type GitHubCommit } from '../api/auth';
+import { authApi, type GitHubActivity, type GitHubCommit, type GitHubPullRequest } from '../api/auth';
 
 const route = useRoute();
 const router = useRouter();
@@ -10,20 +10,17 @@ const loading = ref(true);
 const githubConnected = ref(false);
 const githubLoading = ref(false);
 const githubMessage = ref('');
-const githubRepository = ref('');
-const githubCommits = ref<GitHubCommit[]>([]);
-const githubWidgetLoading = ref(false);
-const githubWidgetError = ref('');
 
-type DashboardWidget = { id: string; repository: string; number: number; commits: GitHubCommit[]; loading: boolean; error: string };
+type WidgetKind = 'recent_commits' | 'open_pull_requests' | 'contribution_activity';
+type DashboardWidget = { id: string; kind: WidgetKind; repository: string; username: string; number: number; data: GitHubCommit[] | GitHubPullRequest[] | GitHubActivity[]; loading: boolean; error: string };
 const widgets = ref<DashboardWidget[]>([]);
 
 function saveWidgets(): void {
-  localStorage.setItem('dashboard_widgets', JSON.stringify(widgets.value.map(({ commits, loading, error, ...widget }) => widget)));
+  localStorage.setItem('dashboard_widgets', JSON.stringify(widgets.value.map(({ data, loading, error, ...widget }) => widget)));
 }
 
-function addWidget(): void {
-  widgets.value.push({ id: `github-${Date.now()}`, repository: '', number: 5, commits: [], loading: false, error: '' });
+function addWidget(kind: WidgetKind = 'recent_commits'): void {
+  widgets.value.push({ id: `github-${Date.now()}`, kind, repository: '', username: '', number: 5, data: [], loading: false, error: '' });
   saveWidgets();
 }
 
@@ -37,12 +34,20 @@ function moveWidget(index: number, direction: -1 | 1): void {
 }
 
 async function loadWidget(widget: DashboardWidget): Promise<void> {
-  if (widget.repository.trim().split('/').length !== 2) { widget.error = 'Use the organisation/repository format.'; return; }
   widget.loading = true; widget.error = '';
   try {
-    widget.commits = await authApi.githubWidget('recent_commits', { repository: widget.repository.trim(), number: String(Math.min(Math.max(widget.number, 1), 20)) });
+    const configuration = { number: String(Math.min(Math.max(widget.number, 1), 20)) };
+    if (widget.kind === 'contribution_activity') {
+      if (!widget.username.trim()) { widget.error = 'Enter a GitHub username.'; return; }
+      widget.data = await authApi.githubWidget<GitHubActivity[]>('contribution_activity', { ...configuration, username: widget.username.trim() });
+    } else {
+      if (widget.repository.trim().split('/').length !== 2) { widget.error = 'Use the organisation/repository format.'; return; }
+      widget.data = widget.kind === 'open_pull_requests'
+        ? await authApi.githubWidget<GitHubPullRequest[]>(widget.kind, { ...configuration, repository: widget.repository.trim() })
+        : await authApi.githubWidget<GitHubCommit[]>(widget.kind, { ...configuration, repository: widget.repository.trim() });
+    }
     saveWidgets();
-  } catch (cause) { widget.error = cause instanceof Error ? cause.message : 'Unable to load GitHub commits.'; }
+  } catch (cause) { widget.error = cause instanceof Error ? cause.message : 'Unable to load GitHub data.'; }
   finally { widget.loading = false; }
 }
 
@@ -60,31 +65,12 @@ onMounted(() => {
   const saved = localStorage.getItem('dashboard_widgets');
   if (saved) {
     try {
-      widgets.value = (JSON.parse(saved) as Array<Partial<DashboardWidget>>).map((widget, index) => ({ id: widget.id ?? `github-${index}`, repository: widget.repository ?? '', number: Number(widget.number) || 5, commits: [], loading: false, error: '' }));
+      widgets.value = (JSON.parse(saved) as Array<Partial<DashboardWidget>>).map((widget, index) => ({ id: widget.id ?? `github-${index}`, kind: widget.kind ?? 'recent_commits', repository: widget.repository ?? '', username: widget.username ?? '', number: Number(widget.number) || 5, data: [], loading: false, error: '' }));
     } catch { localStorage.removeItem('dashboard_widgets'); }
   }
   if (route.query.github === 'connected') githubMessage.value = 'GitHub connected successfully.';
   if (route.query.github === 'cancelled') githubMessage.value = 'GitHub connection was cancelled.';
 });
-
-async function loadGithubCommits(): Promise<void> {
-  if (!githubRepository.value.trim()) {
-    githubWidgetError.value = 'Enter a repository using the owner/name format.';
-    return;
-  }
-  githubWidgetLoading.value = true;
-  githubWidgetError.value = '';
-  try {
-    githubCommits.value = await authApi.githubWidget('recent_commits', {
-      repository: githubRepository.value.trim(),
-      number: '5',
-    });
-  } catch (cause) {
-    githubWidgetError.value = cause instanceof Error ? cause.message : 'Unable to load GitHub commits.';
-  } finally {
-    githubWidgetLoading.value = false;
-  }
-}
 
 function connectGithub(): void {
   authApi.startGithubConnection();
@@ -132,18 +118,18 @@ async function logout(): Promise<void> {
           </div>
           <div v-if="githubConnected && widgets.length" class="widget-grid">
             <article v-for="(widget, index) in widgets" :key="widget.id" class="github-widget card border-0 shadow-sm p-4">
-              <div class="widget-header"><div><p class="eyebrow mb-2">GITHUB</p><h2 class="h5 mb-0">Recent commits</h2></div><div class="widget-actions">
+              <div class="widget-header"><div><p class="eyebrow mb-2">GITHUB</p><h2 class="h5 mb-0">{{ widget.kind === 'recent_commits' ? 'Recent commits' : widget.kind === 'open_pull_requests' ? 'Open pull requests' : 'Contribution activity' }}</h2></div><div class="widget-actions">
                 <button class="btn btn-sm btn-outline-secondary" type="button" :disabled="index === 0" @click="moveWidget(index, -1)">↑</button>
                 <button class="btn btn-sm btn-outline-secondary" type="button" :disabled="index === widgets.length - 1" @click="moveWidget(index, 1)">↓</button>
                 <button class="btn btn-sm btn-outline-danger" type="button" @click="removeWidget(index)">Remove</button>
               </div></div>
               <form class="row g-2 mt-3" @submit.prevent="loadWidget(widget)">
-                <div class="col-md-7"><label class="form-label" :for="`repository-${widget.id}`">Repository</label><input :id="`repository-${widget.id}`" v-model="widget.repository" class="form-control" placeholder="organisation/repository" /></div>
-                <div class="col-md-2"><label class="form-label" :for="`number-${widget.id}`">Commits</label><input :id="`number-${widget.id}`" v-model.number="widget.number" class="form-control" type="number" min="1" max="20" /></div>
+                <div v-if="widget.kind === 'contribution_activity'" class="col-md-7"><label class="form-label" :for="`username-${widget.id}`">GitHub username</label><input :id="`username-${widget.id}`" v-model="widget.username" class="form-control" placeholder="github-username" /></div><div v-else class="col-md-7"><label class="form-label" :for="`repository-${widget.id}`">Repository</label><input :id="`repository-${widget.id}`" v-model="widget.repository" class="form-control" placeholder="organisation/repository" /></div>
+                <div class="col-md-2"><label class="form-label" :for="`number-${widget.id}`">Number</label><input :id="`number-${widget.id}`" v-model.number="widget.number" class="form-control" type="number" min="1" max="20" /></div>
                 <div class="col-md-3 d-flex align-items-end"><button class="btn btn-primary w-100" type="submit" :disabled="widget.loading">{{ widget.loading ? 'Loading…' : 'Load commits' }}</button></div>
               </form>
               <div v-if="widget.error" class="alert alert-danger mt-3 mb-0" role="alert">{{ widget.error }}</div>
-              <ul v-else-if="widget.commits.length" class="list-group list-group-flush mt-3"><li v-for="commit in widget.commits" :key="commit.sha" class="list-group-item px-0"><a :href="commit.html_url" target="_blank" rel="noreferrer">{{ commit.commit.message.split('\n')[0] }}</a><small class="d-block text-secondary">{{ commit.commit.author?.name ?? 'Unknown author' }}</small></li></ul>
+              <ul v-else-if="widget.data.length" class="list-group list-group-flush mt-3"><li v-for="item in widget.data" :key="'id' in item ? item.id : 'sha' in item ? item.sha : item.number" class="list-group-item px-0"><template v-if="widget.kind === 'recent_commits'"><a :href="(item as GitHubCommit).html_url" target="_blank" rel="noreferrer">{{ (item as GitHubCommit).commit.message.split('\n')[0] }}</a><small class="d-block text-secondary">{{ (item as GitHubCommit).commit.author?.name ?? 'Unknown author' }}</small></template><template v-else-if="widget.kind === 'open_pull_requests'"><a :href="(item as GitHubPullRequest).html_url" target="_blank" rel="noreferrer">#{{ (item as GitHubPullRequest).number }} - {{ (item as GitHubPullRequest).title }}</a><small class="d-block text-secondary">{{ (item as GitHubPullRequest).user?.login ?? 'Unknown author' }}</small></template><template v-else><strong>{{ (item as GitHubActivity).type }}</strong><small class="d-block text-secondary">{{ (item as GitHubActivity).repo?.name ?? 'GitHub activity' }}</small></template></li></ul>
               <p v-else class="text-secondary mt-3 mb-0">Configure this widget, then load the latest commits.</p>
             </article>
           </div>
@@ -171,7 +157,7 @@ async function logout(): Promise<void> {
               Connect GitHub
             </button>
             <template v-else>
-              <button class="btn btn-primary w-100 mt-4" type="button" @click="addWidget">Add GitHub widget</button>
+              <button class="btn btn-primary w-100 mt-4" type="button" @click="addWidget()">Add commits widget</button><button class="btn btn-outline-primary w-100 mt-2" type="button" @click="addWidget('open_pull_requests')">Add PR widget</button><button class="btn btn-outline-primary w-100 mt-2" type="button" @click="addWidget('contribution_activity')">Add contribution widget</button>
               <button class="btn btn-outline-secondary w-100 mt-2" type="button" :disabled="githubLoading" @click="disconnectGithub">
               {{ githubLoading ? 'Disconnecting…' : 'Disconnect GitHub' }}
               </button>

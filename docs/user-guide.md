@@ -145,6 +145,13 @@ La configuration des widgets est conservée dans le `localStorage` du navigateur
 
 Les appels sont effectués par le backend avec le token OAuth chiffré. Le token GitHub n'est jamais exposé au frontend.
 
+Deux autres widgets sont disponibles :
+
+- `Open pull requests` : saisir `organisation/repository` et le nombre de PR ;
+- `Contribution activity` : saisir un nom d'utilisateur GitHub et le nombre d'événements publics récents.
+
+L'activité de contribution utilise les événements publics GitHub récents. Elle ne représente donc pas l'intégralité du calendrier privé de contributions.
+
 ## 8. Problèmes fréquents
 
 ### Email non reçu dans Mailpit
