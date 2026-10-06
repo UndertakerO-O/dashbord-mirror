@@ -42,6 +42,9 @@ async function seedService(
 }
 
 async function main(): Promise<void> {
+  const github = await prisma.service.findUnique({ where: { name: 'github' } });
+  if (github) await prisma.widget.deleteMany({ where: { serviceId: github.id, name: 'profile' } });
+
   await seedService('github', 'GitHub account and repository information', [
     { name: 'recent_commits', description: 'Display recent commits from a repository', parameters: [{ name: 'repository', type: 'string' }, { name: 'number', type: 'integer' }] },
     { name: 'open_pull_requests', description: 'Display open pull requests from a repository', parameters: [{ name: 'repository', type: 'string' }, { name: 'number', type: 'integer' }] },
