@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { authApi } from '../api/auth';
+import { authApi, type GitHubCommit } from '../api/auth';
 
 const route = useRoute();
 const router = useRouter();
@@ -10,6 +10,10 @@ const loading = ref(true);
 const githubConnected = ref(false);
 const githubLoading = ref(false);
 const githubMessage = ref('');
+const githubRepository = ref('');
+const githubCommits = ref<GitHubCommit[]>([]);
+const githubWidgetLoading = ref(false);
+const githubWidgetError = ref('');
 
 authApi.me().then((user) => {
   userId.value = user.userId;
@@ -25,6 +29,25 @@ onMounted(() => {
   if (route.query.github === 'connected') githubMessage.value = 'GitHub connected successfully.';
   if (route.query.github === 'cancelled') githubMessage.value = 'GitHub connection was cancelled.';
 });
+
+async function loadGithubCommits(): Promise<void> {
+  if (!githubRepository.value.trim()) {
+    githubWidgetError.value = 'Enter a repository using the owner/name format.';
+    return;
+  }
+  githubWidgetLoading.value = true;
+  githubWidgetError.value = '';
+  try {
+    githubCommits.value = await authApi.githubWidget('recent_commits', {
+      repository: githubRepository.value.trim(),
+      number: '5',
+    });
+  } catch (cause) {
+    githubWidgetError.value = cause instanceof Error ? cause.message : 'Unable to load GitHub commits.';
+  } finally {
+    githubWidgetLoading.value = false;
+  }
+}
 
 function connectGithub(): void {
   authApi.startGithubConnection();
@@ -70,6 +93,30 @@ async function logout(): Promise<void> {
           <div v-if="loading" class="placeholder-glow" aria-live="polite">
             <span class="placeholder col-12 dashboard-placeholder"></span>
           </div>
+          <section v-if="githubConnected" class="github-widget card border-0 shadow-sm p-4 mb-4" aria-labelledby="github-widget-title">
+            <p class="eyebrow mb-2">GITHUB WIDGET</p>
+            <h2 id="github-widget-title" class="h5">Recent commits</h2>
+            <form class="row g-2 mt-2" @submit.prevent="loadGithubCommits">
+              <div class="col-sm-8">
+                <label class="visually-hidden" for="github-repository">Repository</label>
+                <input id="github-repository" v-model="githubRepository" class="form-control" placeholder="owner/repository" />
+              </div>
+              <div class="col-sm-4">
+                <button class="btn btn-primary w-100" type="submit" :disabled="githubWidgetLoading">
+                  {{ githubWidgetLoading ? 'Loading…' : 'Load commits' }}
+                </button>
+              </div>
+            </form>
+            <div v-if="githubWidgetError" class="alert alert-danger mt-3 mb-0" role="alert">{{ githubWidgetError }}</div>
+            <ul v-else-if="githubCommits.length" class="list-group list-group-flush mt-3">
+              <li v-for="commit in githubCommits" :key="commit.sha" class="list-group-item px-0">
+                <a :href="commit.html_url" target="_blank" rel="noreferrer">{{ commit.commit.message.split('\n')[0] }}</a>
+                <small class="d-block text-secondary">{{ commit.commit.author?.name ?? 'Unknown author' }}</small>
+              </li>
+            </ul>
+            <p v-else class="text-secondary mt-3 mb-0">Enter a repository to load its latest commits.</p>
+          </section>
+
           <section v-else class="empty-dashboard card border-0 shadow-sm p-5 text-center" aria-labelledby="empty-title">
             <div class="empty-icon mb-3" aria-hidden="true">+</div>
             <h2 id="empty-title" class="h4">Your dashboard is empty</h2>

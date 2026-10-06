@@ -6,6 +6,12 @@ export interface SignupResponse {
   message: string;
 }
 
+export interface GitHubCommit {
+  sha: string;
+  html_url: string;
+  commit: { message: string; author?: { name?: string } };
+}
+
 export interface AuthUser {
   userId: number;
 }
@@ -47,6 +53,11 @@ export const authApi = {
 
   disconnectGithub() {
     return request<{ message: string }>('/auth/github', { method: 'DELETE' });
+  },
+
+  githubWidget(widget: string, configuration: Record<string, string>) {
+    const params = new URLSearchParams(configuration);
+    return request<GitHubCommit[]>(`/widgets/github/${widget}?${params.toString()}`);
   },
 
   me() {

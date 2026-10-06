@@ -133,3 +133,5 @@ a { color: #3730a3; }
   .dashboard-layout { flex-direction: column; }
   .services-sidebar { width: 100%; }
 }
+
+.github-widget { border: 1px solid #c7d2fe !important; border-radius: 1.25rem; background: #ffffff; }
