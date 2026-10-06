@@ -10,6 +10,7 @@ const githubConnected = ref(false);
 const githubLoading = ref(false);
 const githubMessage = ref('');
 const refreshRate = ref(60);
+const editMode = ref(false);
 let refreshTimer: ReturnType<typeof setInterval> | undefined;
 
 type WidgetKind = 'recent_commits' | 'open_pull_requests' | 'contribution_activity' | 'current_weather';
@@ -54,8 +55,11 @@ function selectCity(widget: DashboardWidget, city: WeatherCity): void {
   widget.cityResults = [];
 }
 
+function toggleEditMode(): void { editMode.value = !editMode.value; }
+
 function addWidget(kind: WidgetKind = 'recent_commits'): void {
   const service = kind === 'current_weather' ? 'weather' : 'github';
+  editMode.value = true;
   widgets.value.push({ id: `${service}-${Date.now()}`, service, kind, city: 'Paris', cityQuery: '', cityResults: [], citySearchLoading: false, repository: '', username: '', latitude: '48.8566', longitude: '2.3522', unit: 'metric', number: 5, data: [], loading: false, error: '' });
   saveWidgets();
 }
@@ -147,7 +151,7 @@ async function logout(): Promise<void> {
       <div class="mb-5">
         <p class="eyebrow mb-2">YOUR SPACE</p>
         <h1 class="display-6 fw-semibold">Good morning</h1>
-        <p class="text-secondary mb-0">Your widgets will appear here as you build your dashboard.</p><div class="refresh-control mt-3"><label class="form-label mb-1" for="refresh-rate">Automatic refresh</label><select id="refresh-rate" v-model.number="refreshRate" class="form-select form-select-sm" @change="changeRefreshRate"><option :value="0">Off</option><option :value="30">Every 30 seconds</option><option :value="60">Every minute</option><option :value="300">Every 5 minutes</option></select></div>
+        <div class="dashboard-toolbar d-flex flex-wrap align-items-end justify-content-between gap-3"><div><p class="text-secondary mb-0">Your widgets will appear here as you build your dashboard.</p></div><button class="btn btn-outline-primary" type="button" @click="toggleEditMode">{{ editMode ? 'View results' : 'Edit dashboard' }}</button></div><div class="refresh-control mt-3"><label class="form-label mb-1" for="refresh-rate">Automatic refresh</label><select id="refresh-rate" v-model.number="refreshRate" class="form-select form-select-sm" @change="changeRefreshRate"><option :value="0">Off</option><option :value="30">Every 30 seconds</option><option :value="60">Every minute</option><option :value="300">Every 5 minutes</option></select></div>
       </div>
 
       <div v-if="githubMessage" class="alert alert-info" role="status">{{ githubMessage }}</div>
@@ -159,12 +163,12 @@ async function logout(): Promise<void> {
           </div>
           <div v-if="visibleWidgets.length" class="widget-grid">
             <template v-for="(widget, index) in widgets" :key="widget.id"><article v-if="widget.service === 'weather' || githubConnected" class="github-widget card border-0 shadow-sm p-4">
-              <div class="widget-header"><div><p class="eyebrow mb-2">{{ widget.service.toUpperCase() }}</p><h2 class="h5 mb-0">{{ widget.kind === 'recent_commits' ? 'Recent commits' : widget.kind === 'open_pull_requests' ? 'Open pull requests' : widget.kind === 'contribution_activity' ? 'Contribution activity' : 'Current weather' }}</h2></div><div class="widget-actions">
+              <div class="widget-header"><div><p class="eyebrow mb-2">{{ widget.service.toUpperCase() }}</p><h2 class="h5 mb-0">{{ widget.kind === 'recent_commits' ? 'Recent commits' : widget.kind === 'open_pull_requests' ? 'Open pull requests' : widget.kind === 'contribution_activity' ? 'Contribution activity' : 'Current weather' }}</h2></div><div v-if="editMode" class="widget-actions">
                 <button class="btn btn-sm btn-outline-secondary" type="button" :disabled="index === 0" @click="moveWidget(index, -1)">↑</button>
                 <button class="btn btn-sm btn-outline-secondary" type="button" :disabled="index === widgets.length - 1" @click="moveWidget(index, 1)">↓</button>
                 <button class="btn btn-sm btn-outline-danger" type="button" @click="removeWidget(index)">Remove</button>
               </div></div>
-              <form class="row g-2 mt-3" @submit.prevent="loadWidget(widget)">
+              <form v-if="editMode" class="row g-2 mt-3" @submit.prevent="loadWidget(widget)">
                 <div v-if="widget.kind === 'contribution_activity'" class="col-md-7"><label class="form-label" :for="`username-${widget.id}`">GitHub username</label><input :id="`username-${widget.id}`" v-model="widget.username" class="form-control" placeholder="github-username" /></div><div v-else-if="widget.kind === 'current_weather'" class="col-md-7"><label class="form-label" :for="`city-${widget.id}`">City</label><div class="input-group"><input :id="`city-${widget.id}`" v-model="widget.cityQuery" class="form-control" placeholder="Search a city" @keyup.enter.prevent="searchCities(widget)" /><button class="btn btn-outline-primary" type="button" :disabled="widget.citySearchLoading" @click="searchCities(widget)">{{ widget.citySearchLoading ? 'Searching…' : 'Search' }}</button></div><div v-if="widget.cityResults.length" class="list-group city-results mt-2"><button v-for="city in widget.cityResults" :key="`${city.name}-${city.latitude}-${city.longitude}`" class="list-group-item list-group-item-action" type="button" @click="selectCity(widget, city)">{{ city.name }}<small class="d-block text-secondary">{{ [city.admin1, city.country].filter(Boolean).join(', ') }}</small></button></div><small v-if="widget.city" class="d-block text-secondary mt-1">Selected: {{ widget.city }}</small></div><div v-else class="col-md-7"><label class="form-label" :for="`repository-${widget.id}`">Repository</label><input :id="`repository-${widget.id}`" v-model="widget.repository" class="form-control" placeholder="organisation/repository" /></div>
                 <div v-if="widget.kind === 'current_weather'" class="col-md-2"><label class="form-label" :for="`unit-${widget.id}`">Unit</label><select :id="`unit-${widget.id}`" v-model="widget.unit" class="form-select"><option value="metric">Metric</option><option value="imperial">Imperial</option></select></div><div v-else class="col-md-2"><label class="form-label" :for="`number-${widget.id}`">Number</label><input :id="`number-${widget.id}`" v-model.number="widget.number" class="form-control" type="number" min="1" max="20" /></div>
                 <div class="col-md-3 d-flex align-items-end"><button class="btn btn-primary w-100" type="submit" :disabled="widget.loading">{{ widget.loading ? 'Loading…' : 'Load data' }}</button></div>

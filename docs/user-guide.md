@@ -171,6 +171,13 @@ Le dashboard conserve dans le navigateur :
 
 La fréquence peut être désactivée ou réglée sur 30 secondes, 1 minute ou 5 minutes. À chaque actualisation, les appels API des widgets disponibles sont relancés.
 
+Le dashboard possède deux modes :
+
+- `View results` : affiche uniquement les données des widgets ;
+- `Edit dashboard` : affiche les paramètres, le déplacement et la suppression des widgets.
+
+L'ajout d'un widget active automatiquement le mode édition pour permettre sa configuration.
+
 ## 9. Problèmes fréquents
 
 ### Email non reçu dans Mailpit
