@@ -26,6 +26,8 @@ Le projet met particulièrement l’accent sur :
 
 ## Fonctionnalités actuelles
 
+Dépôt miroir de debug (branche `main`) : `https://github.com/UndertakerO-O/dashbord-mirror`
+
 - inscription et confirmation de compte par email ;
 - connexion locale et session persistante ;
 - liaison GitHub avec OAuth 2.0 implémenté manuellement ;
