@@ -169,7 +169,18 @@ Le dashboard conserve dans le navigateur :
 - les derniers résultats chargés ;
 - la fréquence d'actualisation.
 
-La fréquence peut être désactivée ou réglée sur 30 secondes, 1 minute ou 5 minutes. À chaque actualisation, les appels API des widgets disponibles sont relancés.
+Chaque widget possède son propre refresh timer. Il peut être désactivé ou réglé sur 30 secondes, 1 minute ou 5 minutes. À chaque échéance, seul le widget concerné relance son appel API.
+
+Pour ajouter un widget :
+
+1. cliquer sur `Add widget` ;
+2. sélectionner le service ;
+3. sélectionner le type de widget ;
+4. renseigner ses paramètres ;
+5. choisir son refresh timer ;
+6. cliquer sur `Add to dashboard`.
+
+Le widget est ajouté uniquement après confirmation.
 
 Le dashboard possède deux modes :
 

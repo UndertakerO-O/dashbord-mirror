@@ -153,3 +153,7 @@ a { color: #3730a3; }
 .btn:focus-visible, .form-control:focus-visible, .form-select:focus-visible, a:focus-visible { outline: 3px solid #f59e0b; outline-offset: 2px; }
 
 .dashboard-shell .navbar .btn-outline-secondary { --bs-btn-color: #ffffff; --bs-btn-border-color: #ffffff; --bs-btn-hover-color: #172554; --bs-btn-hover-bg: #ffffff; --bs-btn-hover-border-color: #ffffff; }
+
+.widget-editor { border: 1px solid #c7d2fe !important; border-radius: 1.25rem; background: #ffffff; }
+.widget-refresh { max-width: 18rem; }
+.city-results { max-height: 14rem; overflow-y: auto; }
