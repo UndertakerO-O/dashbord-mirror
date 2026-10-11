@@ -62,7 +62,7 @@ La session est supprimée côté serveur et le cookie de session est supprimé d
 
 ## 6. Connecter GitHub avec OAuth
 
-OAuth GitHub sert à autoriser les futurs widgets à accéder aux données GitHub. Il ne remplace pas la connexion locale au dashboard.
+OAuth GitHub autorise les widgets GitHub à accéder aux données accessibles par le compte GitHub. Il ne remplace pas la connexion locale au dashboard.
 
 Il faut donc d'abord :
 
@@ -89,15 +89,9 @@ http://localhost:8080/auth/github/callback
 
 ### Démarrer OAuth
 
-Pour le test backend actuel, après s'être connecté, ouvrir :
+Après s'être connecté, cliquer sur `Connect GitHub` dans la sidebar du dashboard. Le navigateur redirige vers GitHub.
 
-```txt
-http://localhost:8080/auth/github
-```
-
-Le navigateur redirige vers GitHub.
-
-1. Se connecter à GitHub si nécessaire.
+1. Choisir le compte GitHub à utiliser dans le sélecteur GitHub.
 2. Autoriser l'application.
 3. GitHub renvoie vers le backend.
 4. Le backend vérifie le `state` OAuth.
@@ -119,7 +113,68 @@ http://localhost:5173/dashboard?github=cancelled
 
 Le secret GitHub reste uniquement côté backend. Le token GitHub est chiffré avant d'être enregistré en base et n'est jamais envoyé au frontend.
 
-## 7. Problèmes fréquents
+## 7. Widgets GitHub
+
+Une fois GitHub connecté, le dashboard permet de consulter des informations réelles depuis un dépôt :
+
+- commits récents ;
+- pull requests ouvertes ;
+- activité publique d'un utilisateur.
+
+Lors de la configuration d'un widget lié à un dépôt, saisir son nom. Une liste de dépôts GitHub apparaît automatiquement ; sélectionner un résultat remplit le format `owner/repository`. La saisie manuelle de ce format reste possible.
+
+Le dashboard permet de gérer plusieurs widgets au même endroit :
+
+1. cliquer sur `Add widget` ;
+2. sélectionner `GitHub` et le type de widget ;
+3. rechercher puis sélectionner un dépôt, ou saisir `owner/repository` ;
+4. renseigner le nombre d'éléments si nécessaire ;
+5. choisir le refresh timer ;
+6. cliquer sur `Add to dashboard` ;
+7. utiliser le mode `Edit dashboard` pour reconfigurer, déplacer ou supprimer une carte.
+
+La configuration des widgets est conservée dans le `localStorage` du navigateur. Les appels sont effectués par le backend avec le token OAuth chiffré. Le token GitHub n'est jamais exposé au frontend.
+
+L'activité de contribution utilise les événements publics GitHub récents. Elle ne représente donc pas l'intégralité du calendrier privé de contributions.
+
+Le service `Weather` est disponible sans connexion OAuth. Deux widgets sont disponibles :
+
+- `Current weather` : température, humidité et vent actuels ;
+- `Rain probability` : probabilité de pluie par jour sur 7 jours.
+
+Pour ces widgets, rechercher une ville, sélectionner le résultat proposé, choisir l'unité `Metric` ou `Imperial`, puis confirmer l'ajout. Les coordonnées sont récupérées automatiquement depuis l'API de géocodage Open-Meteo.
+
+## 8. Sauvegarde et actualisation
+
+Le dashboard conserve dans le navigateur :
+
+- les widgets ajoutés ;
+- leur ordre ;
+- leur configuration ;
+- les derniers résultats chargés ;
+- la fréquence d'actualisation.
+
+Chaque widget possède son propre refresh timer. Il peut être désactivé ou réglé sur 30 secondes, 1 minute, 5 minutes, 1 heure ou 24 heures. À chaque échéance, seul le widget concerné relance son appel API.
+
+Pour ajouter un widget :
+
+1. cliquer sur `Add widget` ;
+2. sélectionner le service ;
+3. sélectionner le type de widget ;
+4. renseigner ses paramètres ;
+5. choisir son refresh timer ;
+6. cliquer sur `Add to dashboard`.
+
+Le widget est ajouté uniquement après confirmation.
+
+Le dashboard possède deux modes :
+
+- `View results` : affiche uniquement les données des widgets ;
+- `Edit dashboard` : affiche les paramètres, le déplacement et la suppression des widgets.
+
+L'ajout d'un widget active automatiquement le mode édition pour permettre sa configuration.
+
+## 9. Problèmes fréquents
 
 ### Email non reçu dans Mailpit
 

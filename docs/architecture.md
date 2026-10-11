@@ -9,8 +9,9 @@ Navigateur
     │
     └── NestJS REST API :8080
              │
-             ├── Modules métier
-             ├── AuthGuard et sessions
+             ├── AuthModule et OAuth GitHub manuel
+             ├── ServicesModule et connecteurs externes
+             ├── WidgetsModule
              ├── Prisma ORM
              └── PostgreSQL :5432
 ```
@@ -19,20 +20,20 @@ Navigateur
 
 Le backend est organisé par modules :
 
-- `auth` : inscription, confirmation, connexion, déconnexion et protection des routes ;
-- `users` : accès aux utilisateurs et données de compte ;
-- `services` : catalogue des services et futurs connectors ;
-- `widgets` : configuration et exécution des widgets ;
-- `dashboard` : instances de widgets propres à un utilisateur ;
+- `auth` : inscription, confirmation, connexion, sessions et OAuth GitHub ;
+- `users` : accès aux utilisateurs ;
+- `services` : registre des connecteurs GitHub et Open-Meteo ;
+- `widgets` : route générique d’exécution des widgets ;
+- `dashboard` : logique liée au dashboard utilisateur ;
 - `database` : connexion Prisma ;
 - `about` : endpoint de découverte demandé par le sujet.
 
-Les controllers exposent HTTP, les services portent la logique métier et les repositories isolent l’accès aux données.
-
-## Modèle de données
-
-Les principaux modèles Prisma sont `User`, `Session`, `Service`, `Widget`, `WidgetParameter`, `Subscription` et `DashboardWidget`.
+Le connecteur GitHub récupère le token OAuth chiffré en base et appelle l’API GitHub. Le connecteur météo appelle Open-Meteo pour le géocodage, la météo actuelle, la probabilité de pluie.
 
 ## Frontend Vue.js
 
-Le frontend est organisé en API, composants, vues et router. Les widgets seront construits comme des composants Vue internes au projet. Aucune librairie de dashboard ou de widgets préfabriqués ne sera ajoutée.
+Le frontend est organisé en API, composants, vues et router. `DashboardView.vue` gère l’ajout guidé, la configuration, la sauvegarde locale, le déplacement, la suppression et le rafraîchissement des widgets. Aucun composant de dashboard ou widget préfabriqué n’est utilisé.
+
+## Données et sécurité
+
+PostgreSQL conserve les utilisateurs, sessions, services, connexions OAuth et états OAuth. Les paramètres d’affichage des widgets sont sauvegardés dans le `localStorage` du navigateur. Les secrets et tokens OAuth restent côté backend.

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, ConflictException, Controller, Delete, Get, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { AuthGuard, AuthenticatedRequest } from './auth.guard';
 import { AuthService } from './auth.service';
@@ -31,6 +31,11 @@ export class AuthController {
     private readonly githubOAuthService: GitHubOAuthService,
   ) {}
 
+  @Get('github/login')
+  async githubLogin(@Res() response: Response) {
+    response.redirect(await this.githubOAuthService.createAuthorizationUrl());
+  }
+
   @Get('github')
   @UseGuards(AuthGuard)
   async github(@Req() request: AuthenticatedRequest, @Res() response: Response) {
@@ -46,8 +51,18 @@ export class AuthController {
   ) {
     const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:5173';
     if (error) return response.redirect(`${frontendUrl}/dashboard?github=cancelled`);
-    await this.githubOAuthService.completeAuthorization(code, state);
-    return response.redirect(`${frontendUrl}/dashboard?github=connected`);
+
+    try {
+      const result = await this.githubOAuthService.completeAuthorization(code, state);
+      if (!result) return response.redirect(`${frontendUrl}/login?github=not-linked`);
+      if (result.login) sessionCookie(response, await this.authService.createSession(result.userId));
+      return response.redirect(`${frontendUrl}/dashboard?github=connected`);
+    } catch (cause) {
+      if (cause instanceof ConflictException) {
+        return response.redirect(`${frontendUrl}/dashboard?github=already-linked`);
+      }
+      throw cause;
+    }
   }
 
   @Post('signup')
@@ -73,6 +88,19 @@ export class AuthController {
     await this.authService.logout(sessionToken(request));
     response.clearCookie('dashboard_session', { path: '/' });
     return { message: 'Logged out' };
+  }
+
+  @Get('github/status')
+  @UseGuards(AuthGuard)
+  async githubStatus(@Req() request: AuthenticatedRequest) {
+    return { connected: await this.githubOAuthService.isConnected(request.userId) };
+  }
+
+  @Delete('github')
+  @UseGuards(AuthGuard)
+  async disconnectGithub(@Req() request: AuthenticatedRequest) {
+    await this.githubOAuthService.disconnect(request.userId);
+    return { message: 'GitHub disconnected' };
   }
 
   @Get('me')

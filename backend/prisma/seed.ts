@@ -42,7 +42,19 @@ async function seedService(
 }
 
 async function main(): Promise<void> {
-  // Aucun service n'est initialisé tant qu'un connecteur fonctionnel n'est pas disponible.
+  const github = await prisma.service.findUnique({ where: { name: 'github' } });
+  if (github) await prisma.widget.deleteMany({ where: { serviceId: github.id, name: 'profile' } });
+
+  await seedService('github', 'GitHub account and repository information', [
+    { name: 'recent_commits', description: 'Display recent commits from a repository', parameters: [{ name: 'repository', type: 'string' }, { name: 'number', type: 'integer' }] },
+    { name: 'open_pull_requests', description: 'Display open pull requests from a repository', parameters: [{ name: 'repository', type: 'string' }, { name: 'number', type: 'integer' }] },
+    { name: 'open_issues', description: 'Display open issues from a repository', parameters: [{ name: 'repository', type: 'string' }, { name: 'number', type: 'integer' }] },
+    { name: 'contribution_activity', description: 'Display recent public activity for a GitHub user', parameters: [{ name: 'username', type: 'string' }, { name: 'number', type: 'integer' }] },
+  ]);
+
+  await seedService('weather', 'Weather information from Open-Meteo', [
+    { name: 'current_weather', description: 'Display current weather for a city', parameters: [{ name: 'latitude', type: 'number' }, { name: 'longitude', type: 'number' }, { name: 'unit', type: 'string' }] },
+  ]);
 }
 main()
   .catch((error) => {

@@ -4,23 +4,29 @@ import { PrismaService } from '../database/prisma.service';
 import { encryptOAuthToken } from './oauth-token.crypto';
 
 const PROVIDER = 'github';
-const STATE_DURATION_MS = 10 * 60 * 1000; // 10 min
+const STATE_DURATION_MS = 10 * 60 * 1000;
 
 @Injectable()
 export class GitHubOAuthService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createAuthorizationUrl(userId: number): Promise<string> {
+  async createAuthorizationUrl(userId?: number): Promise<string> {
     const config = this.configuration();
     const state = randomBytes(32).toString('hex');
     await this.prisma.oAuthState.create({
       data: { userId, stateHash: this.hash(state), expiresAt: new Date(Date.now() + STATE_DURATION_MS) },
     });
-    const params = new URLSearchParams({ client_id: config.clientId, redirect_uri: config.redirectUri, scope: 'read:user user:email', state });
+    const params = new URLSearchParams({
+      client_id: config.clientId,
+      redirect_uri: config.redirectUri,
+      scope: process.env.GITHUB_OAUTH_SCOPES ?? 'read:user user:email repo',
+      prompt: 'select_account',
+      state,
+    });
     return `https://github.com/login/oauth/authorize?${params.toString()}`;
   }
 
-  async completeAuthorization(code: string, state: string): Promise<number> {
+  async completeAuthorization(code: string, state: string): Promise<{ userId: number; login: boolean } | null> {
     if (!code || !state) throw new ServiceUnavailableException('GitHub authorization is incomplete');
     const config = this.configuration();
     const stateRecord = await this.prisma.oAuthState.findUnique({ where: { stateHash: this.hash(state) } });
@@ -32,14 +38,46 @@ export class GitHubOAuthService {
     const existing = await this.prisma.oAuthConnection.findUnique({
       where: { provider_providerAccountId: { provider: PROVIDER, providerAccountId: String(profile.id) } },
     });
-    if (existing && existing.userId !== stateRecord.userId) throw new ConflictException('This GitHub account is already linked to another user');
+
+    if (!stateRecord.userId) {
+      if (!existing) return null;
+      await this.prisma.oAuthConnection.update({
+        where: { id: existing.id },
+        data: { accessTokenCipher: encryptOAuthToken(accessToken) },
+      });
+      return { userId: existing.userId, login: true };
+    }
+
+    if (existing && existing.userId !== stateRecord.userId) {
+      throw new ConflictException('This GitHub account is already linked to another user');
+    }
 
     await this.prisma.oAuthConnection.upsert({
       where: { userId_provider: { userId: stateRecord.userId, provider: PROVIDER } },
-      create: { userId: stateRecord.userId, provider: PROVIDER, providerAccountId: String(profile.id), accessTokenCipher: encryptOAuthToken(accessToken) },
-      update: { providerAccountId: String(profile.id), accessTokenCipher: encryptOAuthToken(accessToken) },
+      create: {
+        userId: stateRecord.userId,
+        provider: PROVIDER,
+        providerAccountId: String(profile.id),
+        accessTokenCipher: encryptOAuthToken(accessToken),
+      },
+      update: {
+        providerAccountId: String(profile.id),
+        accessTokenCipher: encryptOAuthToken(accessToken),
+      },
     });
-    return stateRecord.userId;
+    return { userId: stateRecord.userId, login: false };
+  }
+
+  async isConnected(userId: number): Promise<boolean> {
+    const connection = await this.prisma.oAuthConnection.findUnique({
+      where: { userId_provider: { userId, provider: PROVIDER } },
+      select: { id: true },
+    });
+    return Boolean(connection);
+  }
+
+  async disconnect(userId: number): Promise<void> {
+    await this.prisma.oAuthConnection.deleteMany({ where: { userId, provider: PROVIDER } });
   }
 
   private configuration() {
@@ -65,7 +103,10 @@ export class GitHubOAuthService {
     const response = await fetch(`https://api.github.com${path}`, {
       headers: { Accept: 'application/vnd.github+json', Authorization: `Bearer ${accessToken}`, 'User-Agent': 'dashboard-project' },
     });
-    if (!response.ok) throw new ServiceUnavailableException('GitHub profile request failed');
+    if (!response.ok) {
+      const data = (await response.json().catch(() => null)) as { message?: string } | null;
+      throw new ServiceUnavailableException(data?.message ?? ('GitHub profile request failed (' + response.status + ')'));
+    }
     return (await response.json()) as T;
   }
 

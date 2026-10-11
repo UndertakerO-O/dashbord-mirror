@@ -1,6 +1,4 @@
-// Contrat commun pour les connecteurs d’APIs externes.
 export interface ServiceConnector {
   readonly serviceName: string;
-
-  fetchData(configuration: Record<string, unknown>): Promise<unknown>;
+  fetchData(userId: number, widgetName: string, configuration: Record<string, unknown>): Promise<unknown>;
 }
