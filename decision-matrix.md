@@ -39,8 +39,8 @@ L’utilisation de NestJS pour le backend et de Vue.js pour le frontend. Ces tec
 
 Les deux critères les plus importants sont d’abord la facilité d’apprentissage, car le projet comporte plusieurs fonctionnalités à développer, puis la qualité de l’écosystème. NestJS fournit une architecture claire et modulaire, idéale pour organiser les utilisateurs, services, widgets et authentifications. Vue.js permet de construire rapidement une interface réactive et personnalisable, ce qui correspond parfaitement à un dashboard.
 
-Le principal compromis accepté est que React possède un écosystème légèrement plus vaste que Vue.js. Pour limiter cet inconvénient, nous utiliserons des bibliothèques reconnues comme, Pinia et Vue Router. Nous pourrons également ajouter des composants spécialisés pour les graphiques et le glisser-déposer.
+Le principal compromis accepté est que React possède un écosystème légèrement plus vaste que Vue.js. Vue Router est suffisant pour la navigation du projet et la logique du dashboard est développée directement dans les vues et les services du frontend. Aucun kit de widgets ou de dashboard prêt à l’emploi n’est utilisé, afin de respecter les contraintes du sujet et de garder une implémentation compréhensible.
 
-Vue.js est simple à prendre en main et offre une structure davantage guidée. Pour ce projet, Vue.js permet donc de produire rapidement une application propre, maintenable et responsive.
+Vue.js est simple à prendre en main et offre une structure suffisamment guidée pour produire une application propre, maintenable et responsive.
 
-Mon choix final est donc : **NestJS + Vue.js + **.
+Mon choix final est donc : **NestJS + Vue.js + PostgreSQL + Prisma**.
