@@ -62,7 +62,6 @@ export class AuthService {
     return { sessionToken, userId: user.id };
   }
 
-  // Crée une session pour un utilisateur authentifié localement ou par OAuth.
   async createSession(userId: number): Promise<string> {
     const sessionToken = randomBytes(32).toString('hex');
     await this.prisma.session.create({

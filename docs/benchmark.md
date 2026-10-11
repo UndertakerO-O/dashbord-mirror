@@ -62,6 +62,15 @@ Le sujet impose notamment :
 | Bootstrap CSS | Styles généraux | Grille, formulaires, espacements et responsive sans fournir de dashboard prêt à l'emploi. |
 | Docker Compose | Environnement | Démarrage reproductible du frontend, du backend et de PostgreSQL. |
 
+## Services et widgets implémentés
+
+| Service | Widgets | Configuration |
+|---|---|---|
+| GitHub | Commits récents, pull requests ouvertes, activité publique | Dépôt ou nom d’utilisateur, nombre de résultats ; recherche de dépôts intégrée |
+| Weather / Open-Meteo | Météo actuelle, probabilité de pluie | Ville, unité métrique ou impériale, coordonnées récupérées par géocodage |
+
+Chaque widget possède une fréquence de rafraîchissement indépendante. Les services et widgets sont exécutés côté backend par des connecteurs dédiés.
+
 ## Architecture
 
 ```text
@@ -95,10 +104,11 @@ Le sujet interdit les bibliothèques qui implémentent OAuth entièrement à ma 
 - `URLSearchParams` pour construire l'URL d'autorisation ;
 - `crypto.randomBytes` pour le `state` ;
 - `crypto.createHash` pour stocker le hash du `state` ;
+- `prompt=select_account` pour laisser l’utilisateur choisir son compte GitHub ;
 - `crypto.createCipheriv` avec AES-256-GCM pour chiffrer le token ;
 - Prisma pour les états OAuth et les connexions externes.
 
-La dméarche du projet fonctionne comme ça :
+La démarche du projet fonctionne comme ça :
 
 1. l'utilisateur se connecte au dashboard avec son compte local ;
 2. il demande à connecter GitHub ;

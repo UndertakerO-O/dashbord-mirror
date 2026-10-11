@@ -52,7 +52,8 @@ async function submit(): Promise<void> {
 
     <div v-if="emailSent" class="alert alert-success" role="status">
       <strong>Account created.</strong>
-      <p class="mb-0">Check your email and click the confirmation link before signing in.</p>
+      <p>Check your email and click the confirmation link before signing in.</p>
+      <a class="btn btn-dark btn-sm mt-2" href="http://localhost:8025" target="_blank" rel="noreferrer">Open Mailpit</a>
     </div>
 
     <form v-else @submit.prevent="submit" novalidate>

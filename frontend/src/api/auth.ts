@@ -14,11 +14,16 @@ export interface GitHubCommit {
 
 export interface GitHubPullRequest { number: number; title: string; html_url: string; user?: { login?: string } }
 
+export interface GitHubRepository { id: number; name: string; full_name: string; html_url: string; description?: string | null; private: boolean; owner?: { login?: string } }
+
 export interface GitHubActivity { id: string; type: string; repo?: { name?: string }; actor?: { login?: string }; created_at?: string }
 
 export interface WeatherCity { name: string; latitude: number; longitude: number; country?: string; admin1?: string }
 
 export interface WeatherData { latitude: number; longitude: number; current: { temperature_2m: number; relative_humidity_2m: number; wind_speed_10m: number; weather_code: number } }
+
+
+export interface RainProbability { date: string; probability: number | null }
 
 export interface AuthUser {
   userId: number;
@@ -67,12 +72,17 @@ export const authApi = {
     return widgetRequest<T>('github', widget, configuration);
   },
 
-  weatherWidget(configuration: Record<string, string>) {
-    return widgetRequest<WeatherData>('weather', 'current_weather', configuration);
+  githubRepositories(query: string, signal?: AbortSignal) {
+    return widgetRequest<{ items?: GitHubRepository[] }>('github', 'search_repositories', { query, number: '8' }, signal).then((response) => response.items ?? []);
   },
 
-  weatherCities(name: string) {
-    return widgetRequest<{ results?: WeatherCity[] }>('weather', 'search_cities', { name, count: '8' }).then((response) => response.results ?? []);
+  weatherWidget(widget: 'current_weather' | 'rain_probability', configuration: Record<string, string>) {
+    if (widget === 'rain_probability') return widgetRequest<RainProbability[]>('weather', widget, configuration);
+    return widgetRequest<WeatherData>('weather', widget, configuration);
+  },
+
+  weatherCities(name: string, signal?: AbortSignal) {
+    return widgetRequest<{ results?: WeatherCity[] }>('weather', 'search_cities', { name, count: '8' }, signal).then((response) => response.results ?? []);
   },
 
   me() {
@@ -80,7 +90,7 @@ export const authApi = {
   },
 };
 
-function widgetRequest<T>(service: string, widget: string, configuration: Record<string, string>): Promise<T> {
+function widgetRequest<T>(service: string, widget: string, configuration: Record<string, string>, signal?: AbortSignal): Promise<T> {
   const params = new URLSearchParams(configuration);
-  return request<T>(`/widgets/${service}/${widget}?${params.toString()}`);
+  return request<T>(`/widgets/${service}/${widget}?${params.toString()}`, { signal });
 }

@@ -20,6 +20,7 @@ export class GitHubOAuthService {
       client_id: config.clientId,
       redirect_uri: config.redirectUri,
       scope: process.env.GITHUB_OAUTH_SCOPES ?? 'read:user user:email repo',
+      prompt: 'select_account',
       state,
     });
     return `https://github.com/login/oauth/authorize?${params.toString()}`;

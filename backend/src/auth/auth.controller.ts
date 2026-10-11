@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, ConflictException, Controller, Delete, Get, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { AuthGuard, AuthenticatedRequest } from './auth.guard';
 import { AuthService } from './auth.service';
@@ -51,10 +51,18 @@ export class AuthController {
   ) {
     const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:5173';
     if (error) return response.redirect(`${frontendUrl}/dashboard?github=cancelled`);
-    const result = await this.githubOAuthService.completeAuthorization(code, state);
-    if (!result) return response.redirect(`${frontendUrl}/login?github=not-linked`);
-    if (result.login) sessionCookie(response, await this.authService.createSession(result.userId));
-    return response.redirect(`${frontendUrl}/dashboard?github=connected`);
+
+    try {
+      const result = await this.githubOAuthService.completeAuthorization(code, state);
+      if (!result) return response.redirect(`${frontendUrl}/login?github=not-linked`);
+      if (result.login) sessionCookie(response, await this.authService.createSession(result.userId));
+      return response.redirect(`${frontendUrl}/dashboard?github=connected`);
+    } catch (cause) {
+      if (cause instanceof ConflictException) {
+        return response.redirect(`${frontendUrl}/dashboard?github=already-linked`);
+      }
+      throw cause;
+    }
   }
 
   @Post('signup')

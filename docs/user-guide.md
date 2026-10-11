@@ -62,7 +62,7 @@ La session est supprimée côté serveur et le cookie de session est supprimé d
 
 ## 6. Connecter GitHub avec OAuth
 
-OAuth GitHub sert à autoriser les futurs widgets à accéder aux données GitHub. Il ne remplace pas la connexion locale au dashboard.
+OAuth GitHub autorise les widgets GitHub à accéder aux données accessibles par le compte GitHub. Il ne remplace pas la connexion locale au dashboard.
 
 Il faut donc d'abord :
 
@@ -89,15 +89,9 @@ http://localhost:8080/auth/github/callback
 
 ### Démarrer OAuth
 
-Pour le test backend actuel, après s'être connecté, ouvrir :
+Après s'être connecté, cliquer sur `Connect GitHub` dans la sidebar du dashboard. Le navigateur redirige vers GitHub.
 
-```txt
-http://localhost:8080/auth/github
-```
-
-Le navigateur redirige vers GitHub.
-
-1. Se connecter à GitHub si nécessaire.
+1. Choisir le compte GitHub à utiliser dans le sélecteur GitHub.
 2. Autoriser l'application.
 3. GitHub renvoie vers le backend.
 4. Le backend vérifie le `state` OAuth.
@@ -125,39 +119,30 @@ Une fois GitHub connecté, le dashboard permet de consulter des informations ré
 
 - commits récents ;
 - pull requests ouvertes ;
-- issues ouvertes.
+- activité publique d'un utilisateur.
 
-Chaque widget GitHub est configurable avec :
-
-- un dépôt au format `owner/repository` ;
-- un nombre d'éléments à récupérer.
+Lors de la configuration d'un widget lié à un dépôt, saisir son nom. Une liste de dépôts GitHub apparaît automatiquement ; sélectionner un résultat remplit le format `owner/repository`. La saisie manuelle de ce format reste possible.
 
 Le dashboard permet de gérer plusieurs widgets au même endroit :
 
-1. cliquer sur `Add GitHub widget` pour ajouter une carte ;
-2. saisir le dépôt au format `organisation/repository` ;
-3. choisir le nombre de commits à afficher ;
-4. cliquer sur `Load commits` ;
-5. utiliser `↑` ou `↓` pour réorganiser les cartes ;
-6. cliquer sur `Remove` pour retirer une carte.
+1. cliquer sur `Add widget` ;
+2. sélectionner `GitHub` et le type de widget ;
+3. rechercher puis sélectionner un dépôt, ou saisir `owner/repository` ;
+4. renseigner le nombre d'éléments si nécessaire ;
+5. choisir le refresh timer ;
+6. cliquer sur `Add to dashboard` ;
+7. utiliser le mode `Edit dashboard` pour reconfigurer, déplacer ou supprimer une carte.
 
-La configuration des widgets est conservée dans le `localStorage` du navigateur. Les résultats GitHub sont rechargés avec le bouton `Load commits`.
-
-Les appels sont effectués par le backend avec le token OAuth chiffré. Le token GitHub n'est jamais exposé au frontend.
-
-Deux autres widgets sont disponibles :
-
-- `Open pull requests` : saisir `organisation/repository` et le nombre de PR ;
-- `Contribution activity` : saisir un nom d'utilisateur GitHub et le nombre d'événements publics récents.
+La configuration des widgets est conservée dans le `localStorage` du navigateur. Les appels sont effectués par le backend avec le token OAuth chiffré. Le token GitHub n'est jamais exposé au frontend.
 
 L'activité de contribution utilise les événements publics GitHub récents. Elle ne représente donc pas l'intégralité du calendrier privé de contributions.
 
-Le service `Weather` est disponible sans connexion OAuth. Le widget `Current weather` demande :
+Le service `Weather` est disponible sans connexion OAuth. Deux widgets sont disponibles :
 
-- une ville recherchée depuis Open-Meteo ;
-- une unité `Metric` ou `Imperial`.
+- `Current weather` : température, humidité et vent actuels ;
+- `Rain probability` : probabilité de pluie par jour sur 7 jours.
 
-Rechercher une ville, sélectionner le résultat proposé, puis charger la météo. Les coordonnées sont récupérées automatiquement depuis l'API de géocodage Open-Meteo.
+Pour ces widgets, rechercher une ville, sélectionner le résultat proposé, choisir l'unité `Metric` ou `Imperial`, puis confirmer l'ajout. Les coordonnées sont récupérées automatiquement depuis l'API de géocodage Open-Meteo.
 
 ## 8. Sauvegarde et actualisation
 

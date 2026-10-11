@@ -4,12 +4,15 @@ Le frontend utilise Vue.js 3, Vite, Vue Router et Bootstrap CSS.
 
 ## Fonctionnalités actuelles
 
-- inscription utilisateur ;
-- confirmation de compte ;
-- connexion avec session HTTP-only ;
-- déconnexion ;
+- inscription, validation du mot de passe et confirmation de compte ;
+- connexion locale et connexion GitHub ;
 - route `/dashboard` protégée ;
-- première vue vide prête à accueillir les widgets.
+- ajout guidé de widgets ;
+- widgets GitHub avec recherche de dépôts ;
+- widgets météo avec recherche de villes ;
+- mode consultation et mode édition ;
+- déplacement, suppression et rafraîchissement individuel des widgets ;
+- sauvegarde locale de la configuration du dashboard.
 
 ## Développement
 
@@ -28,7 +31,7 @@ src/
 ├── components/   # composants réutilisables
 ├── views/        # pages liées aux routes
 ├── router.ts     # routes publiques et protégées
-└── styles.css    # styles de l’application
+└── styles.css    # styles applicatifs
 ```
 
-Bootstrap est utilisé uniquement pour la grille, les formulaires et les styles de base. Le dashboard et les widgets seront développés par l’équipe.
+Bootstrap est utilisé uniquement pour la grille, les formulaires et les styles de base. La structure du dashboard, les widgets et leur logique sont écrits dans le projet.

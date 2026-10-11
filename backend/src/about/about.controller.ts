@@ -24,7 +24,8 @@ export class AboutController {
           {
             name: 'weather',
             widgets: [
-              { name: 'current_weather', description: 'Display current weather for a city', params: [{ name: 'latitude', type: 'number' }, { name: 'longitude', type: 'number' }, { name: 'unit', type: 'string' }] },
+              { name: 'current_weather', description: 'Display current weather for a city', params: [{ name: 'latitude', type: 'string' }, { name: 'longitude', type: 'string' }, { name: 'unit', type: 'string' }] },
+              { name: 'rain_probability', description: 'Display the rain probability for the next seven days', params: [{ name: 'latitude', type: 'string' }, { name: 'longitude', type: 'string' }] },
             ],
           },
         ],

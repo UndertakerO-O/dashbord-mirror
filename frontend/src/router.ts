@@ -32,7 +32,6 @@ router.beforeEach(async (to) => {
       await authApi.me();
       return '/dashboard';
     } catch {
-      // L’utilisateur n’est pas connecté : la page invitée reste accessible.
     }
   }
 });

@@ -16,6 +16,7 @@ export class GitHubConnector implements ServiceConnector {
     if (!connection) throw new NotFoundException('GitHub is not connected');
 
     const token = decryptOAuthToken(connection.accessTokenCipher);
+    if (widgetName === 'search_repositories') return this.searchRepositories(token, configuration.query, configuration.number);
     const number = this.limit(configuration.number);
     if (widgetName === 'contribution_activity') {
       const username = this.username(configuration.username);
@@ -32,6 +33,16 @@ export class GitHubConnector implements ServiceConnector {
       return this.githubRequest(`/repos/${repository}/issues?state=open&per_page=${number}`, token);
     }
     throw new NotFoundException('Unknown GitHub widget');
+  }
+
+  private async searchRepositories(token: string, value: unknown, numberValue: unknown): Promise<unknown> {
+    if (typeof value !== 'string' || value.trim().length < 2) {
+      throw new ServiceUnavailableException('Repository name must contain at least two characters');
+    }
+
+    const number = this.limit(numberValue);
+    const query = `${value.trim()} in:name`;
+    return this.githubRequest(`/search/repositories?q=${encodeURIComponent(query)}&per_page=${number}`, token);
   }
 
   private repository(value: unknown): string {

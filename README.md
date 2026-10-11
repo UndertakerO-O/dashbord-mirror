@@ -5,15 +5,17 @@ Dashboard personnalisable permettant à un utilisateur authentifié de suivre pl
 ## Fonctionnalités actuelles
 
 - inscription et confirmation de compte par email avec Mailpit en développement ;
-- connexion avec session persistante ;
-- frontend Vue.js responsive ;
-- dashboard protégé ;
+- connexion locale avec session persistante ;
+- connexion et liaison GitHub avec OAuth 2.0 implémenté manuellement ;
+- recherche de dépôts GitHub par nom ;
+- widgets GitHub : commits récents, pull requests ouvertes et activité publique ;
+- widgets météo Open-Meteo : météo actuelle et probabilité de pluie ;
+- recherche de villes avec autocomplétion ;
+- ajout, configuration, déplacement, suppression et rafraîchissement individuel des widgets ;
+- sauvegarde de la configuration du dashboard dans le navigateur ;
 - endpoint obligatoire `/about.json` ;
-- architecture NestJS modulaire ;
-- persistance PostgreSQL avec Prisma ;
+- architecture NestJS modulaire, PostgreSQL et Prisma ;
 - exécution avec Docker Compose.
-
-Les connecteurs de services externes et les widgets métier seront ajoutés progressivement. Ils ne sont pas encore finalisés.
 
 ## Technologies
 
@@ -21,10 +23,11 @@ Les connecteurs de services externes et les widgets métier seront ajoutés prog
 - Frontend : Vue.js 3, Vite et TypeScript
 - Base de données : PostgreSQL
 - ORM : Prisma
-- Styles : Bootstrap CSS et CSS applicatif
+- Styles : Bootstrap CSS et CSS applicatif écrit dans le projet
 - Conteneurisation : Docker Compose
+- APIs externes : GitHub API et Open-Meteo
 
-Bootstrap est utilisé uniquement pour les styles généraux, les formulaires et le responsive. Aucun dashboard ou widget prêt à l’emploi n’est utilisé.
+Bootstrap est utilisé uniquement pour la grille, les formulaires, les espacements et le responsive. Aucun dashboard, widget ou composant métier prêt à l’emploi n’est utilisé.
 
 ## Démarrage
 
@@ -48,7 +51,8 @@ Adresses disponibles :
 
 - frontend : `http://localhost:5173` ;
 - backend : `http://localhost:8080` ;
-- description serveur : `http://localhost:8080/about.json`.
+- description serveur : `http://localhost:8080/about.json` ;
+- Mailpit : `http://localhost:8025`.
 
 ## Documentation
 
